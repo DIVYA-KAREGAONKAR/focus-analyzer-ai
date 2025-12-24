@@ -1,0 +1,49 @@
+.controls-card {
+  background: #020617;
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 30px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  width: 360px;
+}
+
+.controls-card h3 {
+  margin-bottom: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ctrl-btn:hover {
+  transform: translateY(-2px);
+}
+
+.start {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.switch {
+  background: linear-gradient(135deg, #facc15, #ca8a04);
+}
+
+.stop {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
