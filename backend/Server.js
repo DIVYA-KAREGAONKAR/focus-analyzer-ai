@@ -9,10 +9,12 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ["http://localhost:3000"],
+  origin: ["http://localhost:3000", "https://focus-analyzer-ai-2.onrender.com"],
   methods: ["GET", "POST"],
   credentials: true
 }));
+app.options("*", cors());
+
 
 app.use(express.json());
 
