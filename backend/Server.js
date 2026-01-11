@@ -7,12 +7,17 @@ const Event = require("./Event");
 
 const app = express();
 
-// Middleware
 app.use(cors({
-  origin: ["http://localhost:3000", "https://focus-analyzer-ai-6.onrender.com"],
-  methods: ["GET", "POST"],
+  origin: [
+    "http://localhost:3000",
+    "https://focus-analyzer-ai-6.onrender.com"
+  ],
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
+
+app.options("*", cors());
 
 
 
