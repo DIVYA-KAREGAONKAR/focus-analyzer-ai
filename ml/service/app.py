@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import os
 
 
+
 class SessionFeatures(BaseModel):
     duration: float
     switch_count: int
@@ -31,5 +32,6 @@ def predict(data: SessionFeatures):
         "prediction": prediction,        # 0 or 1
         "confidence": probability        # 0.0 – 1.0
     }
+
 
 
