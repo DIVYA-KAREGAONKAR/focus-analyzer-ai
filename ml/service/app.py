@@ -9,8 +9,8 @@ class SessionFeatures(BaseModel):
     active_ratio: float
 
 app = FastAPI()
-
-model = joblib.load("model.pkl")
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
+model = joblib.load(MODEL_PATH)
 
 @app.post("/predict")
 def predict(data: SessionFeatures):
