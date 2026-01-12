@@ -1,6 +1,9 @@
+
 from fastapi import FastAPI
 import joblib
 from pydantic import BaseModel
+import os
+
 
 class SessionFeatures(BaseModel):
     duration: float
