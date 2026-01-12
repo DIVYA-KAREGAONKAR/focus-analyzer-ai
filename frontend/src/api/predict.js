@@ -1,6 +1,6 @@
 export async function getPrediction(sessionData) {
   try {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/predict`, {
+    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/predict`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
