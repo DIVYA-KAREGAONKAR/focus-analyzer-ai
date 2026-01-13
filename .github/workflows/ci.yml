@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,16 +7,61 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Set up Docker
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
+      # 3️⃣ Build Docker images
       - name: Build Docker images
         run: |
           docker compose build
+
+      # 4️⃣ Deploy ML Backend first
+      - name: Deploy ML Backend
+        id: ml_deploy
+        run: |
+          curl -X POST \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            https://api.render.com/deploy/srv-d5ghtcm3jp1c73c2s8a0
+          echo "ML backend deployed"
+
+      # 5️⃣ Wait for ML to be ready
+      - name: Wait for ML Backend
+        run: |
+          echo "Waiting for ML backend to be ready..."
+          sleep 20
+          echo "ML backend should be ready now"
+
+      # 6️⃣ Deploy Backend, which depends on ML
+      - name: Deploy Backend
+        id: backend_deploy
+        run: |
+          curl -X POST \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            https://api.render.com/deploy/srv-d5hqg4umcj7s73b6p9h0
+          echo "Backend deployed"
+
+      # 7️⃣ Wait for Backend to be ready
+      - name: Wait for Backend
+        run: |
+          echo "Waiting for Backend to be ready..."
+          sleep 20
+
+      # 8️⃣ Deploy Frontend, which depends on Backend
+      - name: Deploy Frontend
+        run: |
+          curl -X POST \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            https://api.render.com/deploy/srv-d5hs3bn5r7bs73blhsh0
+          echo "Frontend deployed"
