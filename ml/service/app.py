@@ -8,7 +8,7 @@ origins = [
     "https://focus-analyzer-ai-6.onrender.com",  # Your Frontend URL
     "https://focus-analyzer-ai-4.onrender.com" # Your Node Backend URL
 ]
-app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True)
+
 
 class SessionFeatures(BaseModel):
     duration: float
@@ -19,6 +19,9 @@ class SessionFeatures(BaseModel):
 app = FastAPI()
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "model.pkl")
 model = joblib.load(MODEL_PATH)
+
+
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True)
 
 @app.post("/predict")
 def predict(data: SessionFeatures):
