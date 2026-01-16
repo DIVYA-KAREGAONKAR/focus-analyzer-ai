@@ -3,6 +3,7 @@ from fastapi import FastAPI
 import joblib
 from pydantic import BaseModel
 import os
+from fastapi.middleware.cors import CORSMiddleware  # <--- Add this line
 
 origins = [
     "https://focus-analyzer-ai-6.onrender.com",  # Your Frontend URL
