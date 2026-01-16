@@ -3,7 +3,8 @@ import axios from "axios";
 
 export const getAdvice = async (concPercent) => {
   try {
-    const response = await axios.post("http://localhost:5000/api/advice", {
+    // Corrected: Removed the ${} or added quotes inside
+    const response = await axios.post("https://focus-analyzer-ai-4.onrender.com/api/advice", {
       concPercent,
     });
     return response.data.advice;
