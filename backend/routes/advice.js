@@ -1,31 +1,18 @@
-import express from "express";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const router = express.Router();
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// POST /api/advice
 router.post("/", async (req, res) => {
   const { concPercent } = req.body;
-
   try {
-    const prompt = `The user focus percentage is ${concPercent}%. Give a short advice to improve focus.`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const advice = completion.choices[0].message.content;
+    const prompt = `The user concentration level is ${concPercent}%. If it is low, give a 1-sentence tip to refocus. If it is high, give a 1-sentence encouragement.`;
+    
+    const result = await model.generateContent(prompt);
+    const advice = result.response.text();
+    
     res.json({ advice });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ advice: "Could not fetch advice." });
+    res.status(500).json({ advice: "Take a deep breath and stay focused!" });
   }
 });
-
-export default router;

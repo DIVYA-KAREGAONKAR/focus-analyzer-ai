@@ -5,7 +5,7 @@ const router = express.Router();
 
 // Create client directly
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
 router.post("/advice", async (req, res) => {
