@@ -1,7 +1,9 @@
-const express = require("express");
+// routes/predict.js
+import express from "express";
+import axios from "axios";
+import Prediction from "../models/Prediction.js"; // make sure .js is included
+
 const router = express.Router();
-const axios = require("axios");
-const Prediction = require("../models/Prediction");
 
 // POST /predict
 router.post("/", async (req, res) => {
@@ -26,6 +28,7 @@ router.post("/", async (req, res) => {
       throw new Error("Invalid confidence from ML service");
     }
 
+    // Save prediction to MongoDB
     const savedPrediction = new Prediction({
       duration: sessionFeatures.duration,
       switch_count: sessionFeatures.switch_count,
@@ -45,4 +48,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

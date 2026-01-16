@@ -4,7 +4,11 @@ import joblib
 from pydantic import BaseModel
 import os
 
-
+origins = [
+    "https://focus-analyzer-ai-6.onrender.com",  # Your Frontend URL
+    "https://focus-analyzer-ai-4.onrender.com" # Your Node Backend URL
+]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True)
 
 class SessionFeatures(BaseModel):
     duration: float

@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// models/Prediction.js
+import mongoose from "mongoose";
 
 const PredictionSchema = new mongoose.Schema({
   duration: Number,
@@ -13,4 +14,6 @@ const PredictionSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model("Prediction", PredictionSchema);
+const Prediction = mongoose.model("Prediction", PredictionSchema);
+
+export default Prediction;

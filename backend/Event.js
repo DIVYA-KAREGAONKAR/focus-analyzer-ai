@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+// backend/Event.js
+import mongoose from "mongoose";
 
 const EventSchema = new mongoose.Schema({
   userId: { type: String, required: true },
@@ -6,4 +7,6 @@ const EventSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
-module.exports = mongoose.model("Event", EventSchema);
+// Export as default
+const Event = mongoose.model("Event", EventSchema);
+export default Event;

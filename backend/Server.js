@@ -1,12 +1,18 @@
-require("dotenv").config();
+// Server.js
+import dotenv from 'dotenv';
+dotenv.config(); // load .env immediately
 
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const Event = require("./Event");
+import express from "express";
+import mongoose from "mongoose";
+import cookieParser from 'cookie-parser';
+import cors from "cors";  
+import Event from "./Event.js";
+import adviceRouter from "./routes/advice.js";
+import predictRouter from "./routes/predict.js"; // <-- replace require with import
 
 const app = express();
 
+// Middleware
 app.use(cors({
   origin: [
     "http://localhost:3000",
@@ -17,9 +23,8 @@ app.use(cors({
   credentials: true
 }));
 
-
-
 app.use(express.json());
+app.use(cookieParser());
 
 // MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -27,18 +32,29 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error(err));
 
 // Routes
-const predictRoute = require("./routes/predict");
-app.use("/api/predict", predictRoute);
+app.use("/api/predict", predictRouter); // <-- use import
+app.use("/api/advice", adviceRouter);
 
+// Event endpoints
 app.post("/event", async (req, res) => {
-  const event = new Event(req.body);
-  await event.save();
-  res.json({ success: true });
+  try {
+    const event = new Event(req.body);
+    await event.save();
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.get("/events", async (req, res) => {
-  const events = await Event.find().sort({ timestamp: 1 });
-  res.json(events);
+  try {
+    const events = await Event.find().sort({ timestamp: 1 });
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Health check

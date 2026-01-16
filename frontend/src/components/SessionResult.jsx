@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { getPrediction } from "../api/predict";
 import "../styles/SessionResults.css";
+import { getAdvice } from "../api/advice"; // make sure you import getAdvice
 
 function SessionResult({ sessionData }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [advice, setAdvice] = useState(""); // new state for advice
 
+  // Prediction useEffect (unchanged)
   useEffect(() => {
     if (!sessionData) return;
 
@@ -32,6 +35,17 @@ function SessionResult({ sessionData }) {
     };
 
     predict();
+  }, [sessionData]);
+
+  // Advice useEffect (new)
+  useEffect(() => {
+    if (sessionData) {
+      const concPercent = sessionData.active_ratio * 100;
+      getAdvice(concPercent).then(setAdvice).catch((err) => {
+        console.error("Failed to get advice:", err);
+        setAdvice("");
+      });
+    }
   }, [sessionData]);
 
   if (!sessionData) return null;
@@ -73,6 +87,14 @@ function SessionResult({ sessionData }) {
                 }}
               />
             </div>
+
+            {/* Advice display */}
+            {advice && (
+              <div className="advice">
+                <h3>Tips to Improve Focus:</h3>
+                <p>{advice}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
