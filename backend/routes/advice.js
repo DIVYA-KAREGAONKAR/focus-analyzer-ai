@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
     const prompt = `The user focus percentage is ${concPercent}%. Give a short advice to improve focus.`;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
     });
 
