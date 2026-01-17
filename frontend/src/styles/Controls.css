@@ -1,20 +1,19 @@
 /* Controls.css */
+/* Update Controls.css */
 .btn-group {
   display: flex;
-  gap: 15px;
-  justify-content: center;
-  margin-top: 20px;
+  flex-wrap: wrap; /* Allows buttons to drop to a new line if the box is small */
+  gap: 12px;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .ctrl-btn {
-  padding: 12px 28px;
-  border-radius: 12px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  flex: 1 1 30%; /* Grows to fill space, but won't go below 30% width */
+  min-width: 80px; 
+  padding: 12px 10px;
+  font-size: 0.85rem;
+  text-align: center;
 }
 
 .start {

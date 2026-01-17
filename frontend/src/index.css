@@ -1,14 +1,21 @@
 /* ... keep your existing :root and body styles above ... */
 
 /* The Main Layout Grid */
+/* Update your dashboard-grid in index.css */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 320px 1fr; /* Sidebar | Main Content */
-  gap: 24px;
+  grid-template-columns: 350px 1fr; /* Fixed sidebar, flexible main area */
+  gap: 30px;
   width: 95%;
   max-width: 1400px;
-  margin-top: 40px;
+  margin: 40px auto; /* Centering the entire dashboard on the screen */
   align-items: start;
+}
+
+/* Ensure the body actually allows centering */
+body {
+  display: block; /* Change from flex if it's causing corner-clumping */
+  overflow-x: hidden;
 }
 
 /* Professional Glass Container */
