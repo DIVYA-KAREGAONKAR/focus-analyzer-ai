@@ -18,24 +18,33 @@ const Auth = ({ onAuthSuccess }) => {
 // src/components/Auth.jsx
 const handleSubmit = async (e) => {
   e.preventDefault();
+  
+  // Choose the endpoint based on the current state
+  const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+  const BACKEND_URL = "https://focus-analyzer-ai-4.onrender.com";
+
   try {
-    const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com/api/auth/login`, formData);
+    const res = await axios.post(`${BACKEND_URL}${endpoint}`, formData);
     
-    // Debug: Check what actually came back in your browser console
     console.log("Backend Response:", res.data);
 
+    // Both Login and Register now return a 'user' object in your server.js
     if (res.data && res.data.user) {
-      // 1. Save to local storage for persistence
       localStorage.setItem("focusUser", JSON.stringify(res.data.user));
-      localStorage.setItem("token", res.data.token);
       
-      // 2. Trigger the redirect in App.js
+      // Only login usually returns a token, but it's safe to check
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
+      
+      // This triggers the redirect to the dashboard in App.js
       onAuthSuccess(res.data.user); 
     } else {
-      alert("Login successful, but no user data received from server.");
+      alert("Success, but no user data received. Check backend console.");
     }
   } catch (err) {
-    alert(err.response?.data?.message || "Login failed");
+    // If the email exists, the backend will send a 400 error with a message
+    alert(err.response?.data?.message || "Authentication failed");
   }
 };
   
