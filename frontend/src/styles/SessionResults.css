@@ -1,89 +1,39 @@
-body {
-  margin: 0;
-  font-family: "Inter", "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, #0f172a, #020617);
-  color: #e5e7eb;
-}
-
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card {
-  background: #020617;
-  border-radius: 16px;
-  padding: 28px;
-  width: 360px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-.card h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.analyze-btn {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #6366f1, #4f46e5);
-  color: white;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.analyze-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
-}
-
-.result {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.focused {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
-}
-
-.distracted {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-}
-
-.confidence {
-  font-size: 14px;
-  margin-bottom: 6px;
-  color: #9ca3af;
-}
-
+/* SessionResults.css */
 .progress-bar {
-  height: 8px;
   width: 100%;
-  background: #1e293b;
-  border-radius: 999px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin: 20px 0;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #22c55e, #16a34a);
+  background: linear-gradient(to right, var(--neon-blue), var(--neon-green));
+  transition: width 1s ease-out;
+  box-shadow: 0 0 10px var(--neon-green);
 }
+
+.advice-box {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-left: 4px solid var(--neon-blue);
+}
+
+.advice-box.distracted { border-left-color: var(--neon-red); }
+.advice-box.focused { border-left-color: var(--neon-green); }
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.badge.focused { background: rgba(74, 222, 128, 0.2); color: var(--neon-green); }
+.badge.distracted { background: rgba(248, 113, 113, 0.2); color: var(--neon-red); }

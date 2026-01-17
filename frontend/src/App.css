@@ -1,38 +1,36 @@
-.App {
+/* App.css */
+.app-container {
+  max-width: 1000px;
+  width: 90%;
+  padding: 40px 20px;
+}
+
+.dashboard-header {
   text-align: center;
+  margin-bottom: 40px;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.dashboard-header h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(to right, var(--neon-blue), var(--neon-green));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: transform 0.3s ease, border 0.3s ease;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Add a subtle glow when the session is active */
+.glass-card.active {
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  box-shadow: 0 0 20px rgba(96, 165, 250, 0.1);
 }
