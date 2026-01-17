@@ -1,17 +1,58 @@
 /*... keep your existing :root and body styles above ... */
-
-/* Container to center the login card on the screen */
+/* Force the Auth screen to cover everything */
 .auth-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
+  background: #0a0c10; /* Solid dark background to ensure visibility */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Ensures it is ABOVE the background gradients */
+  z-index: 10000 !important; /* Extremely high to beat any other element */
 }
+
+/* Ensure inputs have high contrast */
+.auth-input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important; /* Typed text must be white */
+  caret-color: var(--neon-blue); /* Visible cursor */
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .auth-card {
   width: 100%;
@@ -25,24 +66,6 @@
   gap: 20px;
 }
 
-/* Fix for invisible inputs */
-.auth-input {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 12px;
-  padding: 15px;
-  color: white !important;
-  font-size: 1rem;
-  outline: none;
-  width: 100%;
-  box-sizing: border-box; /* Prevents input from going outside the box */
-}
-
-/* Force Placeholders to be visible */
-.auth-input::placeholder {
-  color: rgba(255, 255, 255, 0.5) !important;
-  opacity: 1;
-}
 
 /* Visual feedback when typing */
 .auth-input:focus {
@@ -63,23 +86,6 @@
   opacity: 1;
   text-decoration: underline;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* The Main Layout Grid */
