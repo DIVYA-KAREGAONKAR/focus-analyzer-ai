@@ -106,61 +106,52 @@ function App() {
   }
 
   return (
-    <div className="dashboard-grid">
-      <aside className="glass-container">
-        <div style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--glass-border)' }}>
-           <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>LOGGED IN AS</p>
-           <strong style={{ color: 'var(--neon-blue)' }}>{user.name}</strong>
+  <div className="chat-layout">
+    {/* 1. TOP NAVBAR */}
+    <nav className="navbar">
+      <div className="nav-logo">Focus Analyzer AI</div>
+      <div className="nav-user">
+        <span>{user.name}</span>
+        <button onClick={handleLogout} className="logout-link">Sign Out</button>
+      </div>
+    </nav>
+
+    <div className="layout-body">
+      {/* 2. LEFT SIDEBAR: HISTORY */}
+      <aside className="sidebar-left">
+        <h3>Recent Sessions</h3>
+        <div className="history-list">
+          {sessionHistory.map((item, index) => (
+            <div key={index} className="history-item">
+              <span className="focus-percent">{Math.round(item.active_ratio * 100)}%</span>
+              <span className="history-date">{new Date(item.timestamp).toLocaleDateString()}</span>
+            </div>
+          ))}
         </div>
-
-        <h2 style={{ color: 'var(--neon-blue)', marginBottom: '20px' }}>Action Center</h2>
-        <Controls onEvent={handleEvent} />
-        
-        <div className="history-section">
-          <h3 style={{ marginTop: '30px', fontSize: '0.9rem', opacity: 0.6 }}>ANALYTICS TREND</h3>
-          {sessionHistory.length > 0 && <FocusChart history={sessionHistory} />}
-
-          <h3 style={{ marginTop: '30px', fontSize: '0.9rem', opacity: 0.6 }}>RECENT SESSIONS</h3>
-          <div className="history-list">
-            {sessionHistory.map((item, index) => (
-              <div key={index} className="history-item">
-                <div style={{ color: 'var(--neon-blue)', fontWeight: 'bold' }}>
-                  {Math.round(item.active_ratio * 100)}% Focus
-                </div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>
-                  {new Date(item.timestamp).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button onClick={() => setUser(null)} className="ctrl-btn stop" style={{ marginTop: '20px', width: '100%' }}>
-          Sign Out
-        </button>
       </aside>
 
-      <main className="glass-container">
-        <header className="dashboard-header">
-          <h1>Focus Analyzer Pro</h1>
-          <p>Professional Cognitive Performance Tracking</p>
-        </header>
-        
-        {sessionData ? (
-          <div id="report-content">
-            <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
-            <button className="ctrl-btn switch" style={{ marginTop: '30px', width: '100%' }} onClick={downloadPDF}>
-              Download PDF Report
-            </button>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '100px 0', opacity: 0.3 }}>
-             <p>Start a session to generate a report</p>
-          </div>
-        )}
+      {/* 3. CENTER COLUMN: CONTROLS & CHART */}
+      <main className="main-center">
+        <div className="controls-wrapper">
+          <Controls onEvent={handleEvent} />
+        </div>
+        <div className="chart-wrapper">
+          <FocusChart history={sessionHistory} />
+        </div>
       </main>
+
+      {/* 4. RIGHT SIDEBAR: ADVICE & RESULTS */}
+      <aside className="sidebar-right">
+        <h3>AI Insights</h3>
+        {sessionData ? (
+          <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
+        ) : (
+          <p className="empty-state">Start a session to receive AI coaching.</p>
+        )}
+      </aside>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;

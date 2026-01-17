@@ -7,5 +7,6 @@ const SessionSchema = new mongoose.Schema({
   active_ratio: Number,
   timestamp: { type: Date, default: Date.now }
 });
+const Session = mongoose.model("Session", SessionSchema);
 
-module.exports = mongoose.model('Session', SessionSchema);
+export default Session;
