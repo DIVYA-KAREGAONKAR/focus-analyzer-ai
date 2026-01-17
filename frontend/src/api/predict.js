@@ -1,6 +1,10 @@
+// src/api/predict.js
 export async function getPrediction(sessionData) {
   try {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/predict`, {
+    // Calling the ML server directly from the browser to bypass Cloudflare challenges
+    const ML_URL = "https://focus-analyzer-ai-3.onrender.com/predict";
+
+    const response = await fetch(ML_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
