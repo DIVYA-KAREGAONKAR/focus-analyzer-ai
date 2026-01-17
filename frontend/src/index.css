@@ -1,110 +1,91 @@
-/* --- 1. WHITE MODE VARIABLES --- */
 :root {
-  --sidebar-width: 280px;
-  --nav-height: 64px;
-  --bg-light: #ffffff;
-  --bg-subtle: #f9f9f9; /* Light gray for sidebars */
-  --card-bg: #ffffff;
-  --primary-blue: #2563eb; /* Professional Blue */
-  --border-color: #e5e7eb; /* Soft border */
-  --text-main: #111827;
-  --text-muted: #6b7280;
-  --neon-green: #16a34a;
-  --neon-red: #dc2626;
+  --sidebar-width: 260px;
+  --nav-height: 56px;
+  --bg-main: #ffffff;
+  --bg-sidebar: #f9fafb;
+  --primary-blue: #0ea5e9;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
-
-/* --- 2. GLOBAL RESET --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  background-color: var(--bg-light);
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: var(--text-main);
-  overflow: hidden;
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-/* --- 3. LAYOUT ARCHITECTURE --- */
-.chat-layout { display: flex; flex-direction: column; height: 100vh; }
-.layout-body { display: flex; flex: 1; overflow: hidden; }
-
-/* --- 4. TOP NAVBAR --- */
+/* Navbar: Clean & Minimal */
 .navbar {
   height: var(--nav-height);
-  border-bottom: 1px solid var(--border-color);
+  background: white;
+  border-bottom: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
+  padding: 0 2rem;
   align-items: center;
-  padding: 0 24px;
-  background: var(--bg-light);
-  z-index: 100;
 }
 
-.nav-logo { font-weight: 700; color: var(--primary-blue); font-size: 1.2rem; }
+/* Layout Body */
+.layout-body { display: flex; height: calc(100vh - var(--nav-height)); }
 
-/* --- 5. THREE-COLUMN SYSTEM --- */
 .sidebar-left, .sidebar-right {
   width: var(--sidebar-width);
-  padding: 24px;
-  overflow-y: auto;
-  background-color: var(--bg-subtle);
+  background: var(--bg-sidebar);
+  padding: 1.5rem;
+  border-right: 1px solid var(--border);
 }
-.sidebar-left { border-right: 1px solid var(--border-color); }
-.sidebar-right { border-left: 1px solid var(--border-color); }
 
+.sidebar-right { border-right: none; border-left: 1px solid var(--border); }
+
+/* Main Stage: This is what makes it look modern */
 .main-center {
   flex: 1;
+  background: white;
+  padding: 3rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px;
   overflow-y: auto;
-  background-color: var(--bg-light);
 }
 
-.controls-wrapper { width: 100%; max-width: 600px; margin-bottom: 40px; }
-
-/* --- 6. AUTHENTICATION OVERLAY --- */
-.auth-screen {
-  position: fixed;
-  inset: 0;
-  background: #f3f4f6; /* Soft gray background for login */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.auth-card {
+/* Card Container for Event Logger */
+.controls-wrapper {
   width: 100%;
-  max-width: 400px;
-  padding: 40px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-}
-
-.auth-input {
-  width: 100%;
-  padding: 12px;
-  margin-bottom: 15px;
+  max-width: 600px;
   background: #ffffff;
-  border: 1px solid var(--border-color);
-  color: var(--text-main);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: var(--shadow-md); /* Adds depth */
 }
 
-/* --- 7. UTILITY STYLES --- */
-.history-item {
-  padding: 12px;
-  border-radius: 8px;
-  background: white;
-  border: 1px solid var(--border-color);
-  margin-bottom: 10px;
-  color: var(--text-main);
+/* Modern Button Styling */
+.btn-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
 }
 
+.ctrl-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+}
 
+.start { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+.start:hover { background: #16a34a; color: white; }
+
+.switch { background: #f0f9ff; color: #0284c7; border-color: #bae6fd; }
+
+.stop { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+.stop:hover { background: #dc2626; color: white; }
 
 
 
