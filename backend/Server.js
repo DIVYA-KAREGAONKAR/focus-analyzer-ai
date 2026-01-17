@@ -93,22 +93,36 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // backend/server.js
+// backend/server.js
 app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-  
-  const user = await User.findOne({ email });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ message: "Invalid credentials" });
+  try {
+    const { email, password } = req.body;
+    console.log("Login attempt for:", email); // Debug log
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("User not found");
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    console.log("Password match:", isMatch); // Debug log
+
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // If it crashes here, JWT_SECRET is missing!
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+    res.status(200).json({ 
+      token, 
+      user: { id: user._id, name: user.name, email: user.email } 
+    });
+  } catch (err) {
+    console.error("LOGIN CRASH:", err.message); // This will show in Render logs
+    res.status(500).json({ message: "Server error" });
   }
-
-  // Generate token
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-
-  // YOU MUST SEND THIS DATA BACK
-  res.status(200).json({ 
-    token, 
-    user: { id: user._id, name: user.name, email: user.email } 
-  });
 });
 // --- HISTORY ROUTES ---
 
