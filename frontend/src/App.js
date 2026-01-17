@@ -7,7 +7,7 @@ import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
 
 // Replace with your actual backend URL (e.g., your Render.com URL)
-const API_BASE_URL = "http://localhost:5000/api"; 
+const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
 function App() {
   const [user, setUser] = useState(null); 
