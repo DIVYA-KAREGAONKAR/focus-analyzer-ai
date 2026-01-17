@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 
+
+
+// src/components/Auth.jsx
+import axios from 'axios';
+
 const Auth = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '', name: '' });
@@ -9,14 +14,25 @@ const Auth = ({ onAuthSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.email && formData.password) {
-      onAuthSuccess(formData.email); 
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+    
+    try {
+      // Use your Render backend URL here
+      const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com/${endpoint}`, formData);
+      
+      // If successful, pass the user object (name, id, email) to App.js
+      onAuthSuccess(res.data.user); 
+      
+      // Save token for persistent login
+      localStorage.setItem("token", res.data.token);
+    } catch (err) {
+      alert(err.response?.data?.message || "Authentication failed");
     }
   };
-
-  return (
+  
+   return (
     <div className="auth-screen">
       <div className="glass-container auth-card">
         <h2 style={{ textAlign: 'center', color: 'var(--neon-blue)', marginBottom: '30px' }}>
@@ -72,3 +88,4 @@ const Auth = ({ onAuthSuccess }) => {
 };
 
 export default Auth;
+

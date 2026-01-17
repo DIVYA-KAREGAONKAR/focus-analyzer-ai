@@ -1,24 +1,37 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Controls from "./components/Controls";
 import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
-import Auth from "./components/Auth"; // Ensure this component is created
+import Auth from "./components/Auth";
+
+// Replace with your actual backend URL (e.g., your Render.com URL)
+const API_BASE_URL = "http://localhost:5000/api"; 
 
 function App() {
+  const [user, setUser] = useState(null); // Stores { id, name, email }
   const [startTime, setStartTime] = useState(null);
   const [switchCount, setSwitchCount] = useState(0);
   const [activeTime, setActiveTime] = useState(0);
   const [sessionData, setSessionData] = useState(null);
   const [sessionHistory, setSessionHistory] = useState([]);
-  const [advice, setAdvice] = useState(""); 
-  const [user, setUser] = useState(null); // Track personalized user session
+  const [advice, setAdvice] = useState("");
 
+  // 1. Fetch History from Backend on Login
   useEffect(() => {
-    const savedHistory = JSON.parse(localStorage.getItem("focusHistory") || "[]");
-    setSessionHistory(savedHistory);
-  }, []);
+    if (user) {
+      const fetchUserHistory = async () => {
+        try {
+          const res = await axios.get(`${API_BASE_URL}/history/${user.id}`);
+          setSessionHistory(res.data);
+        } catch (err) {
+          console.error("Error loading history:", err);
+        }
+      };
+      fetchUserHistory();
+    }
+  }, [user]);
 
   useEffect(() => {
     let interval;
@@ -30,7 +43,7 @@ function App() {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  const handleEvent = (type) => {
+  const handleEvent = async (type) => {
     if (type === "START") {
       if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
@@ -38,31 +51,32 @@ function App() {
       setStartTime(Date.now());
       setSwitchCount(0);
       setActiveTime(0);
-      setSessionData(null); 
+      setSessionData(null);
       setAdvice("");
     }
 
-    if (type === "SWITCH") {
-      setSwitchCount((prev) => prev + 1);
-    }
+    if (type === "SWITCH") setSwitchCount((prev) => prev + 1);
 
     if (type === "STOP") {
       const end = Date.now();
-      const durationSec = (end - startTime) / 1000;
-      const durationMin = durationSec / 60;
+      const durationMin = (end - startTime) / 60000;
 
-      const data = {
+      const payload = {
+        userId: user.id, // Important: Link session to the user
         duration: durationMin,
         switch_count: switchCount,
-        switch_rate: durationMin > 0 ? switchCount / durationMin : 0,
-        active_ratio: durationSec > 0 ? activeTime / durationSec : 0,
-        timestamp: new Date().toLocaleString()
+        active_ratio: activeTime / ((end - startTime) / 1000),
+        timestamp: new Date().toISOString()
       };
 
-      setSessionData(data);
-      const updatedHistory = [data, ...sessionHistory].slice(0, 15); // Increased slice for scrollable view
-      setSessionHistory(updatedHistory);
-      localStorage.setItem("focusHistory", JSON.stringify(updatedHistory));
+      // 2. Save Session to Database
+      try {
+        const res = await axios.post(`${API_BASE_URL}/history`, payload);
+        setSessionData(res.data);
+        setSessionHistory([res.data, ...sessionHistory].slice(0, 15));
+      } catch (err) {
+        console.error("Failed to save session:", err);
+      }
       setStartTime(null);
     }
   };
@@ -70,77 +84,58 @@ function App() {
   const downloadPDF = () => {
     if (!sessionData) return;
     const doc = new jsPDF();
-    const reportDate = new Date().toLocaleString();
     const focusScore = Math.round(sessionData.active_ratio * 100);
 
     doc.setFontSize(22);
-    doc.setTextColor(96, 165, 250); 
+    doc.setTextColor(96, 165, 250);
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
     
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Date: ${reportDate}`, 10, 30);
-    doc.text(`User: ${user || "Divya Karegaonkar"}`, 10, 37); // Personalized PDF
-
-    doc.setDrawColor(96, 165, 250);
-    doc.rect(10, 45, 190, 25);
+    doc.text(`User: ${user.name}`, 10, 37); // Personalized via backend data
     doc.text(`Overall Focus Score: ${focusScore}%`, 15, 60);
 
-    doc.text("Metrics Summary:", 10, 85);
-    doc.text(`- Session Duration: ${sessionData.duration.toFixed(2)} mins`, 15, 95);
-    doc.text(`- App Switches: ${sessionData.switch_count}`, 15, 105);
-    
-    doc.text("AI Behavioral Coaching:", 10, 120);
     const splitAdvice = doc.splitTextToSize(advice || "Analyzing flow...", 180);
     doc.text(splitAdvice, 10, 130);
-
     doc.save(`FocusReport_${Date.now()}.pdf`);
   };
 
-  // Auth Guard: Show Sign In/Up first
+  // 3. Auth Guard
   if (!user) {
-    return <Auth onAuthSuccess={(email) => setUser(email)} />;
+    return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
   }
 
   return (
     <div className="dashboard-grid">
       <aside className="glass-container">
-        {/* User Profile Header */}
         <div style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--glass-border)' }}>
-           <p style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '1px' }}>LOGGED IN AS</p>
-           <strong style={{ color: 'var(--neon-blue)' }}>{user}</strong>
+           <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>LOGGED IN AS</p>
+           <strong style={{ color: 'var(--neon-blue)' }}>{user.name}</strong>
         </div>
 
         <h2 style={{ color: 'var(--neon-blue)', marginBottom: '20px' }}>Action Center</h2>
         <Controls onEvent={handleEvent} />
         
         <div className="history-section">
-          <h3 style={{ marginTop: '40px', fontSize: '0.9rem', opacity: 0.6 }}>ANALYTICS TREND</h3>
-          {sessionHistory.length > 0 ? (
-            <FocusChart history={sessionHistory} />
-          ) : (
-            <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>Start sessions to see trends</p>
-          )}
+          <h3 style={{ marginTop: '30px', fontSize: '0.9rem', opacity: 0.6 }}>ANALYTICS TREND</h3>
+          {sessionHistory.length > 0 && <FocusChart history={sessionHistory} />}
 
-          <h3 style={{ marginTop: '40px', fontSize: '0.9rem', opacity: 0.6 }}>RECENT SESSIONS</h3>
-          {/* SCROLLABLE HISTORY LIST: Prevents page height issues */}
-          <div className="history-list" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+          <h3 style={{ marginTop: '30px', fontSize: '0.9rem', opacity: 0.6 }}>RECENT SESSIONS</h3>
+          <div className="history-list">
             {sessionHistory.map((item, index) => (
               <div key={index} className="history-item">
                 <div style={{ color: 'var(--neon-blue)', fontWeight: 'bold' }}>
                   {Math.round(item.active_ratio * 100)}% Focus
                 </div>
-                <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{item.timestamp}</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>
+                  {new Date(item.timestamp).toLocaleString()}
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <button 
-          onClick={() => setUser(null)} 
-          className="ctrl-btn stop" 
-          style={{ marginTop: '20px', width: '100%', fontSize: '0.8rem' }}
-        >
+        <button onClick={() => setUser(null)} className="ctrl-btn stop" style={{ marginTop: '20px', width: '100%' }}>
           Sign Out
         </button>
       </aside>
@@ -153,11 +148,7 @@ function App() {
         
         {sessionData ? (
           <div id="report-content">
-            <SessionResult 
-              key={sessionData.timestamp} 
-              sessionData={sessionData} 
-              setAdvice={setAdvice} 
-            />
+            <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
             <button className="ctrl-btn switch" style={{ marginTop: '30px', width: '100%' }} onClick={downloadPDF}>
               Download PDF Report
             </button>
@@ -173,3 +164,47 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function App() {
+  const [user, setUser] = useState(null); // Now stores { id, name, email }
+
+  // PERSISTENCE: Check if user is already logged in on refresh
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Optional: Call backend to verify token and get user info
+      // For now, we assume valid if token exists for the demo
+    }
+  }, []);
+
+  if (!user) {
+    return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
+  }
+
+  return (
+    <div className="dashboard-grid">
+      <aside className="glass-container">
+        <div className="user-profile">
+          <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>WELCOME BACK</p>
+          <strong style={{ color: 'var(--neon-blue)' }}>{user.name}</strong> {/* */}
+        </div>
+        {/* ... Rest of Sidebar ... */}
+      </aside>
+      {/* ... Rest of Main Dashboard ... */}
+    </div>
+  );
+}
