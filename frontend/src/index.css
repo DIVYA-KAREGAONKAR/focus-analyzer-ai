@@ -1,26 +1,87 @@
-/* ... keep your existing :root and body styles above ... */
-/* Ensure inputs are visible and interactive */
-.auth-input {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white !important; /* Forces typed text to be white */
-  padding: 12px;
-  border-radius: 8px;
-  width: 100%;
-  outline: none;
+/*... keep your existing :root and body styles above ... */
+
+/* Container to center the login card on the screen */
+.auth-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensures it is ABOVE the background gradients */
 }
 
-/* Make placeholders stand out */
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Fix for invisible inputs */
+.auth-input {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px;
+  padding: 15px;
+  color: white !important;
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box; /* Prevents input from going outside the box */
+}
+
+/* Force Placeholders to be visible */
 .auth-input::placeholder {
   color: rgba(255, 255, 255, 0.5) !important;
-  opacity: 1; /* Firefox fix */
+  opacity: 1;
 }
 
-/* Fix for when the input is focused */
+/* Visual feedback when typing */
 .auth-input:focus {
-  border-color: var(--neon-blue);
-  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--neon-blue) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
 }
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 0.9rem;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+
+.auth-toggle:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* The Main Layout Grid */
 /* Update your dashboard-grid in index.css */
 .dashboard-grid {

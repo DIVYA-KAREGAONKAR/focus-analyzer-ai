@@ -6,42 +6,56 @@ const Auth = ({ onAuthSuccess }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // In a real app, call your API here. For now, we simulate success:
-    console.log("Auth Data:", formData);
+    // Simulate auth success for the dashboard
     onAuthSuccess(formData.email); 
   };
 
   return (
-    <div className="glass-container" style={{ maxWidth: '400px', margin: '100px auto' }}>
-      <h2 style={{ textAlign: 'center', color: 'var(--neon-blue)' }}>
-        {isLogin ? "Welcome Back" : "Create Account"}
-      </h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {!isLogin && (
+    <div className="auth-screen">
+      <div className="glass-container auth-card">
+        <h2 style={{ textAlign: 'center', color: 'var(--neon-blue)', marginBottom: '30px' }}>
+          {isLogin ? "Welcome Back" : "Create Account"}
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="auth-form">
+          {!isLogin && (
+            <input 
+              className="auth-input"
+              type="text"
+              placeholder="Full Name" 
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              required
+            />
+          )}
+          
           <input 
-            className="ctrl-btn" style={{ background: 'var(--glass-bg)', color: 'white' }}
-            placeholder="Name" 
-            onChange={(e) => setFormData({...formData, name: e.target.value})} 
+            className="auth-input"
+            type="email" 
+            placeholder="Email Address" 
+            value={formData.email}
+            onChange={(e) => setFormData({...formData, email: e.target.value})}
+            required
           />
-        )}
-        <input 
-          className="ctrl-btn" style={{ background: 'var(--glass-bg)', color: 'white' }}
-          type="email" placeholder="Email" required
-          onChange={(e) => setFormData({...formData, email: e.target.value})} 
-        />
-        <input 
-          className="ctrl-btn" style={{ background: 'var(--glass-bg)', color: 'white' }}
-          type="password" placeholder="Password" required
-          onChange={(e) => setFormData({...formData, password: e.target.value})} 
-        />
-        <button className="ctrl-btn start" type="submit">
-          {isLogin ? "Sign In" : "Register"}
-        </button>
-      </form>
-      <p style={{ textAlign: 'center', marginTop: '15px', cursor: 'pointer', fontSize: '0.8rem' }} 
-         onClick={() => setIsLogin(!isLogin)}>
-        {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
-      </p>
+          
+          <input 
+            className="auth-input"
+            type="password" 
+            placeholder="Password" 
+            value={formData.password}
+            onChange={(e) => setFormData({...formData, password: e.target.value})}
+            required
+          />
+          
+          <button className="ctrl-btn start" type="submit" style={{ marginTop: '10px' }}>
+            {isLogin ? "Sign In" : "Register"}
+          </button>
+        </form>
+
+        <p className="auth-toggle" onClick={() => setIsLogin(!isLogin)}>
+          {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
+        </p>
+      </div>
     </div>
   );
 };
