@@ -9,32 +9,27 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 // backend/routes/advice.js
 // backend/routes/advice.js
+// backend/routes/advice.js
 router.post("/", async (req, res) => {
-  const { concPercent, status } = req.body;
+  const { concPercent, status } = req.body; // status is "Focused" or "Distracted"
 
+  // We explicitly label the percentage so the AI doesn't guess
   const prompt = `
-    The user is CURRENTLY ${status.toUpperCase()} with ${concPercent}% intensity.
+    The user is currently ${status.toUpperCase()}.
+    This means they have a ${concPercent}% ${status === "Focused" ? "Concentration" : "Distraction"} level.
+
+    TASK: 
+    - If they have high "Distraction", give a firm 1-sentence tip to refocus.
+    - If they have high "Concentration", give 1 sentence of encouragement to stay in the flow.
     
-    CRITICAL RULES:
-    1. If the status is "FOCUSED": 
-       - DO NOT give advice on how to get focused. 
-       - DO NOT tell them to remove distractions. 
-       - DO stay positive and give 1 short sentence of encouragement to keep them in the "flow state."
-       - Example: "You're in the zone—keep this momentum going for another 20 minutes!"
-
-    2. If the status is "DISTRACTED":
-       - Objective: The user is off-task. 
-       - Give 1 firm, practical sentence to help them return to work immediately.
-       - Example: "Put your phone away and take one deep breath to reconnect with your task."
-
-    Constraint: Max 15 words.
+    Constraint: Exactly 1 sentence. Be professional.
   `;
 
   try {
     const result = await model.generateContent(prompt);
     res.json({ advice: result.response.text() });
   } catch (err) {
-    res.json({ advice: "Keep up the great work!" });
+    res.json({ advice: "Stay centered and keep working!" });
   }
 });
 
