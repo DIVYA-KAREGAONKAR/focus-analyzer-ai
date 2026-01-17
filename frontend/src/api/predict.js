@@ -1,16 +1,16 @@
-// src/api/predict.js
 export async function getPrediction(sessionData) {
   try {
     const ML_URL = "https://focus-analyzer-ai-3.onrender.com/predict";
 
-    // Calculate the missing field: switch_rate (switches / duration)
-    const duration = Number(sessionData.duration) || 0.1; // Prevent division by zero
+    // Standardize numeric values
+    const duration = Number(sessionData.duration) || 0.1; 
     const switchCount = Number(sessionData.switch_count) || 0;
 
     const cleanedPayload = {
       duration: duration,
-      switch_rate: switchCount / duration, // This is the missing field!
-      active_ratio: Number(sessionData.active_ratio)
+      switch_count: switchCount,       // REQUIRED FIELD
+      switch_rate: switchCount / duration, // REQUIRED FIELD
+      active_ratio: Number(sessionData.active_ratio) // REQUIRED FIELD
     };
 
     const response = await fetch(ML_URL, {
