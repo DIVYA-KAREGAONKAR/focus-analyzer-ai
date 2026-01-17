@@ -15,24 +15,27 @@ const Auth = ({ onAuthSuccess }) => {
   };
 
   // src/components/Auth.jsx
+// src/components/Auth.jsx
 const handleSubmit = async (e) => {
   e.preventDefault();
-  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-  
   try {
-    const res = await axios.post(`https://focus-analyzer-ai-6.onrender.com${endpoint}`, formData);
+    const res = await axios.post(`https://focus-analyzer-ai-6.onrender.com/api/auth/login`, formData);
     
-    // SUCCESS: If the backend sends 'user', log them in
-    if (res.data.user) {
+    // Debug: Check what actually came back in your browser console
+    console.log("Backend Response:", res.data);
+
+    if (res.data && res.data.user) {
+      // 1. Save to local storage for persistence
+      localStorage.setItem("focusUser", JSON.stringify(res.data.user));
+      localStorage.setItem("token", res.data.token);
+      
+      // 2. Trigger the redirect in App.js
       onAuthSuccess(res.data.user); 
-    } else if (!isLogin) {
-      // If just registered and no user object returned, flip to login
-      setIsLogin(true);
-      alert("Registration successful! Please log in.");
+    } else {
+      alert("Login successful, but no user data received from server.");
     }
   } catch (err) {
-    // This is where your "Email exists" alert is coming from
-    alert(err.response?.data?.message || "An error occurred");
+    alert(err.response?.data?.message || "Login failed");
   }
 };
   

@@ -92,16 +92,24 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
+// backend/server.js
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
+  
   const user = await User.findOne({ email });
   if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(400).json({ message: "Invalid credentials" });
+    return res.status(401).json({ message: "Invalid credentials" });
   }
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-  res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
-});
 
+  // Generate token
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+  // YOU MUST SEND THIS DATA BACK
+  res.status(200).json({ 
+    token, 
+    user: { id: user._id, name: user.name, email: user.email } 
+  });
+});
 // --- HISTORY ROUTES ---
 
 app.get('/api/history/:userId', async (req, res) => {

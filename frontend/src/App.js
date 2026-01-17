@@ -116,9 +116,9 @@ function App() {
   };
 
   // 4. Auth Guard
-  if (!user) {
-    return <Auth onAuthSuccess={handleLoginSuccess} />;
-  }
+ if (!user) {
+  return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
+}
 
   return (
     <div className="chat-layout">
