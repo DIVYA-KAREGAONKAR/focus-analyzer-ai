@@ -178,33 +178,3 @@ export default App;
 
 
 
-
-function App() {
-  const [user, setUser] = useState(null); // Now stores { id, name, email }
-
-  // PERSISTENCE: Check if user is already logged in on refresh
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Optional: Call backend to verify token and get user info
-      // For now, we assume valid if token exists for the demo
-    }
-  }, []);
-
-  if (!user) {
-    return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
-  }
-
-  return (
-    <div className="dashboard-grid">
-      <aside className="glass-container">
-        <div className="user-profile">
-          <p style={{ fontSize: '0.7rem', opacity: 0.5 }}>WELCOME BACK</p>
-          <strong style={{ color: 'var(--neon-blue)' }}>{user.name}</strong> {/* */}
-        </div>
-        {/* ... Rest of Sidebar ... */}
-      </aside>
-      {/* ... Rest of Main Dashboard ... */}
-    </div>
-  );
-}
