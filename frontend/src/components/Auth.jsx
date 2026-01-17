@@ -19,7 +19,7 @@ const Auth = ({ onAuthSuccess }) => {
 const handleSubmit = async (e) => {
   e.preventDefault();
   try {
-    const res = await axios.post(`https://focus-analyzer-ai-6.onrender.com/api/auth/login`, formData);
+    const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com/api/auth/login`, formData);
     
     // Debug: Check what actually came back in your browser console
     console.log("Backend Response:", res.data);
