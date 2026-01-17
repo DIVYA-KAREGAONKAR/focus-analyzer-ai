@@ -20,7 +20,7 @@ const handleSubmit = async (e) => {
   const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
   
   try {
-    const res = await axios.post(`${API_BASE_URL}${endpoint}`, formData);
+    const res = await axios.post(`https://focus-analyzer-ai-6.onrender.com${endpoint}`, formData);
     
     // SUCCESS: If the backend sends 'user', log them in
     if (res.data.user) {
