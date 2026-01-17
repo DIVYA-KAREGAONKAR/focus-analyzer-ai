@@ -65,15 +65,30 @@ app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
+// backend/server.js
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    
+    // 1. Check if user actually exists first
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "This email is already registered." });
+    }
+
+    // 2. Hash and Save
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-    res.status(201).json({ message: "User created" });
+    const user = new User({ name, email, password: hashedPassword });
+    await user.save();
+
+    // 3. IMPORTANT: Send back the user data so the frontend logs them in immediately
+    res.status(201).json({ 
+      message: "Registration successful",
+      user: { id: user._id, name: user.name, email: user.email } 
+    });
   } catch (err) {
-    res.status(500).json({ message: "Email already exists" });
+    console.error(err);
+    res.status(500).json({ message: "Server error during registration." });
   }
 });
 

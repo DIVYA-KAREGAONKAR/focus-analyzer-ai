@@ -14,23 +14,27 @@ const Auth = ({ onAuthSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+  // src/components/Auth.jsx
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+  
+  try {
+    const res = await axios.post(`${API_BASE_URL}${endpoint}`, formData);
     
-    try {
-      // Use your Render backend URL here
-      const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com${endpoint}`, formData);
-      
-      // If successful, pass the user object (name, id, email) to App.js
+    // SUCCESS: If the backend sends 'user', log them in
+    if (res.data.user) {
       onAuthSuccess(res.data.user); 
-      
-      // Save token for persistent login
-      localStorage.setItem("token", res.data.token);
-    } catch (err) {
-      alert(err.response?.data?.message || "Authentication failed");
+    } else if (!isLogin) {
+      // If just registered and no user object returned, flip to login
+      setIsLogin(true);
+      alert("Registration successful! Please log in.");
     }
-  };
+  } catch (err) {
+    // This is where your "Email exists" alert is coming from
+    alert(err.response?.data?.message || "An error occurred");
+  }
+};
   
    return (
     <div className="auth-screen">
