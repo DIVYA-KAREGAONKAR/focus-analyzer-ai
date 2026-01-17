@@ -8,11 +8,12 @@ import {
   LineElement, 
   Title, 
   Tooltip, 
-  Legend 
+  Legend, 
+  Filler
 } from 'chart.js';
 
 // Register the necessary Chart.js modules
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend,Filler);
 
 const FocusChart = ({ history }) => {
   const data = {

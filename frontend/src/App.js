@@ -31,7 +31,7 @@ function App() {
     if (user) {
       const fetchUserHistory = async () => {
         try {
-          const res = await axios.get(`${API_BASE_URL}/history/${user.id}`);
+          const res = await axios.get(`${API_BASE_URL}/api/history/${user.id}`);
           setSessionHistory(res.data);
         } catch (err) {
           console.error("Error loading history:", err);
@@ -89,7 +89,7 @@ function App() {
       };
 
       try {
-        const res = await axios.post(`${API_BASE_URL}/history`, payload);
+        const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
         setSessionData(res.data);
         setSessionHistory([res.data, ...sessionHistory].slice(0, 15));
       } catch (err) {
