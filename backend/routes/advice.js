@@ -6,8 +6,7 @@ const router = express.Router();
 // Configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Use Gemini 3 Flash for speed and reliable 2026 support
-const model = genAI.getGenerativeModel({ model: "gemini-3-flash" }); 
-
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 router.post("/", async (req, res) => {
   const { concPercent } = req.body;
   try {

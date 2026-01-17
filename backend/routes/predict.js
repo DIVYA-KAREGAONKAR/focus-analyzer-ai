@@ -10,10 +10,14 @@ router.post("/", async (req, res) => {
   try {
     const sessionFeatures = req.body;
 
-    const response = await axios.post(
-      `${process.env.ML_SERVICE_URL}/predict`,
-      sessionFeatures
-    );
+   // routes/predict.js
+const response = await axios.post("https://focus-analyzer-ai-3.onrender.com/predict", req.body, {
+  headers: {
+    "Content-Type": "application/json",
+    // This makes the request look like it's from a real Chrome browser
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  }
+});
 
     const prediction = Number(response.data.prediction);
     const confidence = Number(response.data.confidence);
