@@ -20,7 +20,7 @@ const Auth = ({ onAuthSuccess }) => {
     
     try {
       // Use your Render backend URL here
-      const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com/${endpoint}`, formData);
+      const res = await axios.post(`https://focus-analyzer-ai-4.onrender.com${endpoint}`, formData);
       
       // If successful, pass the user object (name, id, email) to App.js
       onAuthSuccess(res.data.user); 
