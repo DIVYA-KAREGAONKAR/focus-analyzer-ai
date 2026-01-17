@@ -19,7 +19,7 @@ app.use(cors({
     "https://focus-analyzer-ai-6.onrender.com"
   ],
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization","User-Agent"],
   credentials: true
 }));
 
