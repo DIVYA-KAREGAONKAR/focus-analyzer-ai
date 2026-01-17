@@ -7,22 +7,31 @@ const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Use Gemini 3 Flash for speed and reliable 2026 support
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// backend/routes/advice.js
 router.post("/", async (req, res) => {
-  const { concPercent } = req.body;
- try {
-    // Create a much stricter prompt
-    const prompt = `
-      The user's concentration level is ${concPercent}%. 
-      - If it is below 50%, the user is DISTRACTED. Give a firm, 1-sentence tip to stop procrastinating and refocus.
-      - If it is between 50% and 80%, the user is SLIGHTLY UNFOCUSED. Give a 1-sentence tip to improve flow.
-      - If it is above 80%, the user is HIGHLY FOCUSED. Give a 1-sentence encouragement.
-      Be concise and direct.
-    `;
+  const { concPercent, status } = req.body; // Status will be "Focused" or "Distracted"
+
+  const prompt = `
+    User Status: ${status}
+    Intensity Level: ${concPercent}%
+
+    INSTRUCTIONS:
+    1. If status is "Distracted":
+       - Treat the ${concPercent}% as the "Severity of Distraction".
+       - Give a firm, 1-sentence tip to stop procrastinating.
     
+    2. If status is "Focused":
+       - Treat the ${concPercent}% as the "Quality of Concentration".
+       - Give a 1-sentence encouragement or a tip to maintain deep flow.
+
+    Constraint: Keep the response to exactly one sentence.
+  `;
+
+  try {
     const result = await model.generateContent(prompt);
     res.json({ advice: result.response.text() });
   } catch (err) {
-    res.json({ advice: "Stay centered and keep going!" });
+    res.json({ advice: "Keep pushing forward!" });
   }
 });
 
