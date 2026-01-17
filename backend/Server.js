@@ -11,8 +11,8 @@ import cors from "cors";
 import Event from "./Event.js";
 import adviceRouter from "./routes/advice.js";
 import predictRouter from "./routes/predict.js"; // <-- replace require with import
-const User = require('./models/User');
-const Session = require('./models/Session');
+import User from "./models/User.js";
+import Session from "./models/Session.js";
 const app = express();
 
 // Middleware
