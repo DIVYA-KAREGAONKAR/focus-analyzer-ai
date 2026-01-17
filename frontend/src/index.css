@@ -1,14 +1,27 @@
 /* --- 1. CORE VARIABLES --- */
+
+
+
 :root {
-  --sidebar-width: 300px;
-  --nav-height: 64px;
   --bg-dark: #0d0d0d;
-  --card-bg: #171717;
   --neon-blue: #60a5fa;
-  --neon-green: #4ade80;
-  --neon-red: #f87171;
+  --neon-green: #4ade80;  /* Add this */
+  --neon-red: #f87171;    /* Add this for Logout/Stop buttons */
   --glass-border: rgba(255, 255, 255, 0.1);
+  --nav-height: 64px;     /* Add this or Navbar will have 0 height */
+  --sidebar-width: 300px; /* Add this or Sidebars will have 0 width */
+  --card-bg: #171717;     /* Add this or Auth Card will be transparent */
 }
+
+body {
+  background-color: var(--bg-dark); /* Ensure this matches your variable name */
+  margin: 0;
+  height: 100vh;
+}
+
+
+
+
 
 /* --- 2. GLOBAL RESET --- */
 * {
@@ -17,12 +30,7 @@
   box-sizing: border-box;
 }
 
-body {
-  background-color: var(--bg-dark);
-  font-family: 'Inter', -apple-system, sans-serif;
-  color: white;
-  overflow: hidden; /* Only columns will scroll, not the whole page */
-}
+
 
 /* --- 3. LAYOUT ARCHITECTURE --- */
 .chat-layout {
@@ -152,13 +160,6 @@ body {
   opacity: 0.4;
   margin-top: 50px;
 }
-
-
-
-
-
-
-
 
 
 
