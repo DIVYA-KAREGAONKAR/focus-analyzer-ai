@@ -4,22 +4,22 @@ import html2canvas from 'html2canvas';
 import Controls from "./components/Controls";
 import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
+import Auth from "./components/Auth"; // Ensure this component is created
 
 function App() {
   const [startTime, setStartTime] = useState(null);
   const [switchCount, setSwitchCount] = useState(0);
   const [activeTime, setActiveTime] = useState(0);
   const [sessionData, setSessionData] = useState(null);
-  const [sessionHistory, setSessionHistory] = useState([]); // Renamed from 'history' to avoid 'no-restricted-globals'
+  const [sessionHistory, setSessionHistory] = useState([]);
   const [advice, setAdvice] = useState(""); 
+  const [user, setUser] = useState(null); // Track personalized user session
 
-  // Load history on startup
   useEffect(() => {
     const savedHistory = JSON.parse(localStorage.getItem("focusHistory") || "[]");
     setSessionHistory(savedHistory);
   }, []);
 
-  // Timer logic
   useEffect(() => {
     let interval;
     if (startTime) {
@@ -30,13 +30,15 @@ function App() {
     return () => clearInterval(interval);
   }, [startTime]);
 
-  // Define handleEvent BEFORE it is used in the return/JSX
   const handleEvent = (type) => {
     if (type === "START") {
+      if ("Notification" in window && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
       setStartTime(Date.now());
       setSwitchCount(0);
       setActiveTime(0);
-      setSessionData(null);
+      setSessionData(null); 
       setAdvice("");
     }
 
@@ -58,11 +60,9 @@ function App() {
       };
 
       setSessionData(data);
-      
-      const updatedHistory = [data, ...sessionHistory].slice(0, 10);
+      const updatedHistory = [data, ...sessionHistory].slice(0, 15); // Increased slice for scrollable view
       setSessionHistory(updatedHistory);
       localStorage.setItem("focusHistory", JSON.stringify(updatedHistory));
-      
       setStartTime(null);
     }
   };
@@ -78,8 +78,9 @@ function App() {
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
     
     doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
     doc.text(`Date: ${reportDate}`, 10, 30);
-    doc.text(`User: Divya Karegaonkar`, 10, 37);
+    doc.text(`User: ${user || "Divya Karegaonkar"}`, 10, 37); // Personalized PDF
 
     doc.setDrawColor(96, 165, 250);
     doc.rect(10, 45, 190, 25);
@@ -96,9 +97,20 @@ function App() {
     doc.save(`FocusReport_${Date.now()}.pdf`);
   };
 
+  // Auth Guard: Show Sign In/Up first
+  if (!user) {
+    return <Auth onAuthSuccess={(email) => setUser(email)} />;
+  }
+
   return (
     <div className="dashboard-grid">
       <aside className="glass-container">
+        {/* User Profile Header */}
+        <div style={{ marginBottom: '20px', paddingBottom: '10px', borderBottom: '1px solid var(--glass-border)' }}>
+           <p style={{ fontSize: '0.7rem', opacity: 0.5, letterSpacing: '1px' }}>LOGGED IN AS</p>
+           <strong style={{ color: 'var(--neon-blue)' }}>{user}</strong>
+        </div>
+
         <h2 style={{ color: 'var(--neon-blue)', marginBottom: '20px' }}>Action Center</h2>
         <Controls onEvent={handleEvent} />
         
@@ -111,7 +123,8 @@ function App() {
           )}
 
           <h3 style={{ marginTop: '40px', fontSize: '0.9rem', opacity: 0.6 }}>RECENT SESSIONS</h3>
-          <div className="history-list">
+          {/* SCROLLABLE HISTORY LIST: Prevents page height issues */}
+          <div className="history-list" style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
             {sessionHistory.map((item, index) => (
               <div key={index} className="history-item">
                 <div style={{ color: 'var(--neon-blue)', fontWeight: 'bold' }}>
@@ -122,6 +135,14 @@ function App() {
             ))}
           </div>
         </div>
+
+        <button 
+          onClick={() => setUser(null)} 
+          className="ctrl-btn stop" 
+          style={{ marginTop: '20px', width: '100%', fontSize: '0.8rem' }}
+        >
+          Sign Out
+        </button>
       </aside>
 
       <main className="glass-container">
@@ -131,12 +152,16 @@ function App() {
         </header>
         
         {sessionData ? (
-          <>
-            <SessionResult sessionData={sessionData} setAdvice={setAdvice} />
+          <div id="report-content">
+            <SessionResult 
+              key={sessionData.timestamp} 
+              sessionData={sessionData} 
+              setAdvice={setAdvice} 
+            />
             <button className="ctrl-btn switch" style={{ marginTop: '30px', width: '100%' }} onClick={downloadPDF}>
               Download PDF Report
             </button>
-          </>
+          </div>
         ) : (
           <div style={{ textAlign: 'center', padding: '100px 0', opacity: 0.3 }}>
              <p>Start a session to generate a report</p>

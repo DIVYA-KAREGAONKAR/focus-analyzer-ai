@@ -18,6 +18,24 @@ body {
   overflow-x: hidden;
 }
 
+
+
+/* Optimized History List */
+.history-list {
+  margin-top: 20px;
+  max-height: 300px; /* Limits the height so it doesn't push the page down */
+  overflow-y: auto;  /* Adds a scrollbar only inside this box */
+  padding-right: 8px;
+}
+
+/* Custom Scrollbar for a professional look */
+.history-list::-webkit-scrollbar {
+  width: 4px;
+}
+.history-list::-webkit-scrollbar-thumb {
+  background: var(--neon-blue);
+  border-radius: 10px;
+}
 /* Professional Glass Container */
 .glass-container {
   background: var(--glass-bg);
@@ -29,12 +47,6 @@ body {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-/* History List Styles */
-.history-list {
-  margin-top: 20px;
-  max-height: 400px;
-  overflow-y: auto;
-}
 
 .history-item {
   padding: 12px;
