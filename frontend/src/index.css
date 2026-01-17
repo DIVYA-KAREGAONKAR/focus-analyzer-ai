@@ -1,64 +1,100 @@
 /*... keep your existing :root and body styles above ... */
-/* Force the Auth screen to cover everything */
+
+
+/* Full-screen background for the Auth page */
 .auth-screen {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #0a0c10; /* Solid dark background to ensure visibility */
+  background: radial-gradient(circle at center, #1e293b 0%, #0a0c10 100%);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000 !important; /* Extremely high to beat any other element */
+  z-index: 10000;
 }
 
-/* Ensure inputs have high contrast */
+/* The Glassmorphism Card */
+.auth-card {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  padding: 40px;
+  border-radius: 24px;
+  width: 400px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+/* Force Input Visibility */
 .auth-input {
   background: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important; /* Typed text must be white */
-  caret-color: var(--neon-blue); /* Visible cursor */
-}
-
-.auth-input::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-.auth-card {
+  color: white !important; /* This fixes the "cannot see typing" issue */
+  padding: 15px;
+  border-radius: 12px;
   width: 100%;
-  max-width: 400px;
-  padding: 40px;
+  margin-bottom: 15px;
+  outline: none;
+  font-size: 1rem;
 }
+
+/* Make placeholders bright enough to read */
+.auth-input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.auth-input:focus {
+  border-color: #60a5fa !important; /* Neon Blue focus */
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .auth-form {
   display: flex;
@@ -67,11 +103,7 @@
 }
 
 
-/* Visual feedback when typing */
-.auth-input:focus {
-  border-color: var(--neon-blue) !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-}
+
 
 .auth-toggle {
   text-align: center;
