@@ -1,87 +1,55 @@
-/* --- 1. CORE VARIABLES --- */
-
-
-
+/* --- 1. WHITE MODE VARIABLES --- */
 :root {
-  --bg-dark: #f7f2f2;
-  --neon-blue: #60a5fa;
-  --neon-green: #4ade80;  /* Add this */
-  --neon-red: #f87171;    /* Add this for Logout/Stop buttons */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --nav-height: 64px;     /* Add this or Navbar will have 0 height */
-  --sidebar-width: 300px; /* Add this or Sidebars will have 0 width */
-  --card-bg: #171717;     /* Add this or Auth Card will be transparent */
+  --sidebar-width: 280px;
+  --nav-height: 64px;
+  --bg-light: #ffffff;
+  --bg-subtle: #f9f9f9; /* Light gray for sidebars */
+  --card-bg: #ffffff;
+  --primary-blue: #2563eb; /* Professional Blue */
+  --border-color: #e5e7eb; /* Soft border */
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --neon-green: #16a34a;
+  --neon-red: #dc2626;
 }
-
-body {
-  background-color: var(--bg-dark); /* Ensure this matches your variable name */
-  margin: 0;
-  height: 100vh;
-}
-
-
-
-
 
 /* --- 2. GLOBAL RESET --- */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-
-
-/* --- 3. LAYOUT ARCHITECTURE --- */
-.chat-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.layout-body {
-  display: flex;
-  flex: 1;
+body {
+  background-color: var(--bg-light);
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text-main);
   overflow: hidden;
 }
+
+/* --- 3. LAYOUT ARCHITECTURE --- */
+.chat-layout { display: flex; flex-direction: column; height: 100vh; }
+.layout-body { display: flex; flex: 1; overflow: hidden; }
 
 /* --- 4. TOP NAVBAR --- */
 .navbar {
   height: var(--nav-height);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 24px;
-  background: rgba(13, 13, 13, 0.95);
+  background: var(--bg-light);
   z-index: 100;
 }
 
-.nav-logo {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: var(--neon-blue);
-}
-
-.logout-link {
-  background: transparent;
-  color: var(--neon-red);
-  border: 1px solid var(--neon-red);
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-}
+.nav-logo { font-weight: 700; color: var(--primary-blue); font-size: 1.2rem; }
 
 /* --- 5. THREE-COLUMN SYSTEM --- */
 .sidebar-left, .sidebar-right {
   width: var(--sidebar-width);
   padding: 24px;
   overflow-y: auto;
-  background-color: var(--bg-dark);
+  background-color: var(--bg-subtle);
 }
-
-.sidebar-left { border-right: 1px solid var(--glass-border); }
-.sidebar-right { border-left: 1px solid var(--glass-border); }
+.sidebar-left { border-right: 1px solid var(--border-color); }
+.sidebar-right { border-left: 1px solid var(--border-color); }
 
 .main-center {
   flex: 1;
@@ -90,25 +58,20 @@ body {
   align-items: center;
   padding: 40px;
   overflow-y: auto;
-  background-color: #050505; /* Slightly darker to add depth */
+  background-color: var(--bg-light);
 }
 
-/* Centers the action buttons and chart */
-.controls-wrapper, .chart-wrapper {
-  width: 100%;
-  max-width: 650px;
-  margin-bottom: 40px;
-}
+.controls-wrapper { width: 100%; max-width: 600px; margin-bottom: 40px; }
 
 /* --- 6. AUTHENTICATION OVERLAY --- */
 .auth-screen {
   position: fixed;
   inset: 0;
-  background: var(--bg-dark);
+  background: #f3f4f6; /* Soft gray background for login */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10000; /* Stays on top of everything */
+  z-index: 10000;
 }
 
 .auth-card {
@@ -116,54 +79,30 @@ body {
   max-width: 400px;
   padding: 40px;
   background: var(--card-bg);
-  border-radius: 24px;
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
 .auth-input {
   width: 100%;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
-  color: white;
-  border-radius: 12px;
-  outline: none;
-}
-
-.auth-input:focus {
-  border-color: var(--neon-blue);
+  padding: 12px;
+  margin-bottom: 15px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 8px;
 }
 
 /* --- 7. UTILITY STYLES --- */
 .history-item {
   padding: 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid var(--glass-border);
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid var(--border-color);
+  margin-bottom: 10px;
+  color: var(--text-main);
 }
-
-.focus-percent { color: var(--neon-blue); font-weight: bold; }
-.history-date { opacity: 0.5; font-size: 0.8rem; }
-
-.empty-state {
-  text-align: center;
-  opacity: 0.4;
-  margin-top: 50px;
-}
-
-
-
-
 
 
 
