@@ -1,103 +1,87 @@
 import { useEffect, useState } from "react";
 import { getPrediction } from "../api/predict";
 import "../styles/SessionResults.css";
-import { getAdvice } from "../api/advice"; // make sure you import getAdvice
+import { getAdvice } from "../api/advice";
 
-function SessionResult({ sessionData }) {
+// Destructure setAdvice from props to sync with App.js for PDF
+function SessionResult({ sessionData, setAdvice }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [advice, setAdvice] = useState(""); // new state for advice
+  const [localAdvice, setLocalAdvice] = useState(""); 
 
-  // Prediction useEffect (unchanged)
   useEffect(() => {
     if (!sessionData) return;
 
     const predict = async () => {
       try {
         setLoading(true);
-
         const res = await getPrediction(sessionData);
-        console.log("API result:", res); // Debug API response
-
-        // Ensure confidence is a number
+        
         if (res && typeof res.confidence === "number") {
           setResult(res);
+          
+          // Trigger Advice with both prediction and confidence
+          const adviceText = await getAdvice(res.prediction, res.confidence);
+          setLocalAdvice(adviceText);
+          setAdvice(adviceText); // Update App.js state for PDF report
         } else {
-          console.warn("Invalid confidence value from API:", res);
           setResult({ prediction: res?.prediction ?? 0, confidence: 0 });
         }
       } catch (err) {
         console.error("Prediction failed", err);
-        setResult({ prediction: 0, confidence: 0 }); // fallback
+        setResult({ prediction: 0, confidence: 0 });
       } finally {
         setLoading(false);
       }
     };
 
     predict();
-  }, [sessionData]);
-
-  // Advice useEffect (new)
-  useEffect(() => {
-    if (sessionData) {
-      const concPercent = sessionData.active_ratio * 100;
-      getAdvice(concPercent).then(setAdvice).catch((err) => {
-        console.error("Failed to get advice:", err);
-        setAdvice("");
-      });
-    }
-  }, [sessionData]);
+  }, [sessionData, setAdvice]);
 
   if (!sessionData) return null;
 
-  const confidencePercent =
-    result && typeof result.confidence === "number"
-      ? Math.round(result.confidence * 100)
-      : "N/A";
+  const isFocused = result?.prediction === 1;
+  const confidencePercent = result ? Math.round(result.confidence * 100) : 0;
 
   return (
-    <div className="app-container">
-      <div className="card">
-        <h2>AI Focus Analyzer</h2>
-
-        {loading && <p style={{ textAlign: "center" }}>Analyzing session...</p>}
-
-        {result && (
-          <div className="result">
-            <div
-              className={`badge ${
-                result.prediction === 1 ? "distracted" : "focused"
-              }`}
-            >
-              {result.prediction === 1 ? "Distracted" : "Focused"}
-            </div>
-
-            <div className="confidence">
-              Confidence: {confidencePercent}%
-            </div>
-
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{
-                  width:
-                    typeof result.confidence === "number"
-                      ? `${result.confidence * 100}%`
-                      : "0%",
-                }}
-              />
-            </div>
-
-            {/* Advice display */}
-            {advice && (
-              <div className="advice">
-                <h3>Tips to Improve Focus:</h3>
-                <p>{advice}</p>
-              </div>
-            )}
+    <div className="result-container">
+      {loading ? (
+        <div className="flex-center">
+          <div className="loader"></div>
+          <p>AI is analyzing your behavior...</p>
+        </div>
+      ) : result && (
+        <div className="result-content">
+          {/* Dynamic Status Badge */}
+          <div className={`badge ${isFocused ? "focused" : "distracted"}`}>
+            {isFocused ? "🎯 Focused" : "⚠️ Distracted"}
           </div>
-        )}
-      </div>
+
+          <div className="metrics-row">
+            <span>Intensity: {confidencePercent}%</span>
+          </div>
+
+          {/* Professional Progress Bar */}
+          <div className="progress-bar">
+            <div
+              className="progress-fill"
+              style={{
+                width: `${confidencePercent}%`,
+                backgroundColor: isFocused ? "var(--neon-green)" : "var(--neon-red)",
+                boxShadow: `0 0 10px ${isFocused ? "var(--neon-green)" : "var(--neon-red)"}`
+              }}
+            />
+          </div>
+
+          {/* Context-Aware Advice Display */}
+          {localAdvice && (
+            <div className={`advice-box ${isFocused ? "focused" : "distracted"}`}>
+              <h4>{isFocused ? "🚀 Flow Sustained" : "🧭 Refocus Strategy"}</h4>
+              <p>{localAdvice}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

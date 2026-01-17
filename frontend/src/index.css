@@ -1,22 +1,39 @@
-/* index.css */
-:root {
-  --bg-dark: #0a0c10;
-  --glass-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --neon-green: #4ade80;
-  --neon-red: #f87171;
-  --neon-blue: #60a5fa;
+/* ... keep your existing :root and body styles above ... */
+
+/* The Main Layout Grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr; /* Sidebar | Main Content */
+  gap: 24px;
+  width: 95%;
+  max-width: 1400px;
+  margin-top: 40px;
+  align-items: start;
 }
 
-body {
-  margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: var(--bg-dark);
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(96, 165, 250, 0.15) 0, transparent 50%), 
-    radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.1) 0, transparent 50%);
-  color: white;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
+/* Professional Glass Container */
+.glass-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 25px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* History List Styles */
+.history-list {
+  margin-top: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  font-size: 0.85rem;
 }
