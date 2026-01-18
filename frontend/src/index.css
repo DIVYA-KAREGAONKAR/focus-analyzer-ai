@@ -50,21 +50,31 @@ body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; 
 .logout-link:hover { background: var(--distract-color); color: white; border-color: var(--distract-color); }
 
 /* --- LEFT SIDEBAR (FIXED: Full Height) --- */
+/* --- LEFT SIDEBAR (FIXED WIDTH) --- */
 .history-list {
-  width: var(--sidebar-width);
+  width: var(--sidebar-width);       /* 320px */
+  min-width: var(--sidebar-width);   /* Never shrink smaller than 320px */
+  max-width: var(--sidebar-width);   /* Never grow larger than 320px */
+  
+  height: 100%;                      /* Fill vertical height */
+  flex-shrink: 0;                    /* Prevent squishing */
+  
   background: var(--bg-sidebar);
-  
-  /* --- THE IMPORTANT PART --- */
-  height: 100%;       /* Force it to fill the parent container */
-  min-height: 100%;   /* Backup to ensure it never shrinks */
-  flex-grow: 1;       /* If parent is flex, this makes it grow */
-  /* -------------------------- */
-  
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
   overflow-y: auto;
   border-right: 1px solid #eff1f4;
+}
+
+/* Ensure the main content takes the REST of the width */
+.main-center {
+  flex: 1;             /* This makes the center area grow, not the sidebar */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: white;
+  min-width: 0;        /* Prevents horizontal scroll issues */
 }
 
 .history-card {
@@ -187,94 +197,117 @@ body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; 
 
 
 
+/* =========================================
+   MOBILE RESPONSIVENESS (Add to bottom of index.css)
+   ========================================= */
+@media (max-width: 768px) {
 
+  /* 1. Layout Changes: Stack everything vertically */
+  .layout-body {
+    flex-direction: column;
+  }
 
+  /* 2. Sidebar: Transform into a Horizontal Top Scroll */
+  .history-list {
+    width: 100%;             /* Full width */
+    max-width: 100%;         /* Override the fixed desktop width */
+    min-width: 0;
+    height: auto;            /* Only take necessary height */
+    max-height: 120px;       /* Limit height so it doesn't take over */
+    flex-direction: row;     /* Items go left-to-right */
+    overflow-x: auto;        /* Scroll horizontally */
+    overflow-y: hidden;
+    padding: 10px;
+    border-right: none;
+    border-bottom: 1px solid #eff1f4;
+    gap: 10px;
+  }
 
+  /* Adjust History Cards for Horizontal View */
+  .history-card {
+    min-width: 140px;        /* Fixed width for each card */
+    margin-bottom: 0;        /* Remove bottom margin */
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    flex-direction: column;  /* Stack text inside the little card */
+    align-items: flex-start;
+    gap: 4px;
+  }
 
+  .history-list h4, .history-list p {
+    display: none;           /* Hide "Session History" title on mobile to save space */
+  }
 
+  /* 3. Main Content Area */
+  .main-center {
+    width: 100%;
+    padding: 0;              /* Remove side padding */
+  }
 
+  .content-scroll-area {
+    padding: 1rem;           /* Smaller padding */
+    padding-bottom: 120px;   /* Keep space for bottom controls */
+  }
 
+  /* 4. Chart: Make it shorter */
+  .chart-wrapper {
+    height: 220px;           /* Shorter chart for mobile */
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
 
+  /* 5. Controls: Fix the "Too Big" buttons */
+  .bottom-input-area {
+    height: auto;            /* Auto height */
+    padding: 15px;
+    background: white;       /* Solid background (no transparent gradient) */
+    border-top: 1px solid #f0f0f0;
+  }
 
+  .controls-card {
+    transform: none;         /* Remove the desktop scale effect */
+    width: 100%;             /* Full width bar */
+    border-radius: 16px;
+    justify-content: space-around; /* Spread buttons evenly */
+    padding: 10px;
+  }
+  
+  .controls-card:hover {
+    transform: none;         /* Disable hover grow on mobile */
+  }
 
+  .btn-group {
+    width: 100%;
+    justify-content: space-between;
+    gap: 8px;
+  }
 
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
+  .ctrl-btn {
+    padding: 10px 0;         /* Less padding */
+    flex: 1;                 /* Buttons take equal width */
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
 
+  /* 6. Auth Screen */
+  .auth-card {
+    width: 90%;              /* 90% width on mobile */
+    padding: 2rem 1.5rem;
+  }
 
-
-
-.auth-toggle {
-  text-align: center;
-  margin-top: 25px;
-  font-size: 0.9rem;
-  opacity: 0.7;
-  cursor: pointer;
-  transition: opacity 0.3s;
-}
-
-.auth-toggle:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-
-
-/* The Main Layout Grid */
-/* Update your dashboard-grid in index.css */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 350px 1fr; /* Fixed sidebar, flexible main area */
-  gap: 30px;
-  width: 95%;
-  max-width: 1400px;
-  margin: 40px auto; /* Centering the entire dashboard on the screen */
-  align-items: start;
-}
-
-/* Ensure the body actually allows centering */
-body {
-  display: block; /* Change from flex if it's causing corner-clumping */
-  overflow-x: hidden;
-}
-
-
-
-/* Optimized History List */
-.history-list {
-  margin-top: 20px;
-  max-height: 300px; /* Limits the height so it doesn't push the page down */
-  overflow-y: auto;  /* Adds a scrollbar only inside this box */
-  padding-right: 8px;
-}
-
-/* Custom Scrollbar for a professional look */
-.history-list::-webkit-scrollbar {
-  width: 4px;
-}
-.history-list::-webkit-scrollbar-thumb {
-  background: var(--neon-blue);
-  border-radius: 10px;
-}
-/* Professional Glass Container */
-.glass-container {
-  background: var(--glass-bg);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  border-radius: 24px;
-  padding: 25px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-
-.history-item {
-  padding: 12px;
-  margin-bottom: 10px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--glass-border);
-  font-size: 0.85rem;
+  /* 7. Navbar Adjustments */
+  .navbar {
+    padding: 0 1rem;
+    height: 60px;
+  }
+  .nav-logo {
+    font-size: 1.1rem;
+  }
+  .nav-user span {
+    display: none;           /* Hide username on mobile, show only logout */
+  }
+  .nav-user {
+    padding: 0;
+    background: transparent;
+  }
 }
