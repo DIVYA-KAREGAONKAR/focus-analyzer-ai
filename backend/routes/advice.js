@@ -14,16 +14,12 @@ router.post("/", async (req, res) => {
   const { concPercent, status } = req.body; // status is "Focused" or "Distracted"
 
   // We explicitly label the percentage so the AI doesn't guess
-  const prompt = `
-    The user is currently ${status.toUpperCase()}.
-    This means they have a ${concPercent}% ${status === "Focused" ? "Concentration" : "Distraction"} level.
-
-    TASK: 
-    - If they have high "Distraction", give a firm 1-sentence tip to refocus.
-    - If they have high "Concentration", give 1 sentence of encouragement to stay in the flow.
-    
-    Constraint: Exactly 1 sentence. Be professional.
-  `;
+  // Inside your backend routes/advice.js (Logic update)
+const prompt = `The user was ${status} with an intensity of ${concPercent}%. 
+Provide a 3-sentence professional coaching insight. 
+Sentence 1: Analyze the current state. 
+Sentence 2: Explain the psychological impact of this focus level. 
+Sentence 3: Give a specific, high-impact action step to improve flow.`;
 
   try {
     const result = await model.generateContent(prompt);

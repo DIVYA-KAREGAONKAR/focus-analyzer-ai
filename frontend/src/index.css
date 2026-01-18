@@ -155,7 +155,23 @@ body {
 .badge.focused { background: #dcfce7; color: #16a34a; }
 .badge.distracted { background: #fee2e2; color: #dc2626; }
 
+.history-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s;
+}
 
+.history-card.focused { border-left: 4px solid #22c55e; }
+.history-card.distracted { border-left: 4px solid #ef4444; }
+
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.card-status { font-weight: 700; font-size: 0.8rem; }
+.card-score { color: var(--primary-blue); font-weight: 800; }
+.card-advice-preview { font-size: 0.75rem; color: var(--text-light); margin-bottom: 8px; line-height: 1.4; }
 
 
 

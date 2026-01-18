@@ -76,27 +76,35 @@ function App() {
 
     if (type === "SWITCH") setSwitchCount((prev) => prev + 1);
 
-    if (type === "STOP") {
-      const end = Date.now();
-      const durationMin = (end - startTime) / 60000;
+    // App.js - Updated handleEvent "STOP"
+if (type === "STOP") {
+  const end = Date.now();
+  const durationMin = (end - startTime) / 60000;
+  const activeRatio = activeTime / ((end - startTime) / 1000);
 
-      const payload = {
-        userId: user.id, 
-        duration: durationMin,
-        switch_count: switchCount,
-        active_ratio: activeTime / ((end - startTime) / 1000),
-        timestamp: new Date().toISOString()
-      };
+  // 1. First, get the AI Prediction and Advice
+  // Note: You may need to lift the prediction logic from SessionResult to here 
+  // to ensure advice is ready before the POST request.
+  
+  const payload = {
+    userId: user.id, 
+    duration: durationMin,
+    switch_count: switchCount,
+    active_ratio: activeRatio,
+    status: activeRatio > 0.7 ? "Focused" : "Distracted", // Temporary logic
+    advice: advice, // Use the advice state
+    timestamp: new Date().toISOString()
+  };
 
-      try {
-        const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
-        setSessionData(res.data);
-        setSessionHistory([res.data, ...sessionHistory].slice(0, 15));
-      } catch (err) {
-        console.error("Failed to save session:", err);
-      }
-      setStartTime(null);
-    }
+  try {
+    const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
+    setSessionData(res.data);
+    setSessionHistory([res.data, ...sessionHistory]);
+  } catch (err) {
+    console.error("Failed to save session:", err);
+  }
+  setStartTime(null);
+}
   };
 
   const downloadPDF = () => {
@@ -133,21 +141,20 @@ function App() {
 
       <div className="layout-body">
         {/* 2. LEFT SIDEBAR: HISTORY */}
-        <aside className="sidebar-left">
-          <h3>Recent Sessions</h3>
-          <div className="history-list">
-            {sessionHistory.length > 0 ? (
-              sessionHistory.map((item, index) => (
-                <div key={index} className="history-item">
-                  <span className="focus-percent">{Math.round(item.active_ratio * 100)}%</span>
-                  <span className="history-date">{new Date(item.timestamp).toLocaleDateString()}</span>
-                </div>
-              ))
-            ) : (
-              <p className="empty-state">No sessions found.</p>
-            )}
-          </div>
-        </aside>
+        // Inside App.js Sidebar-left
+<div className="history-list">
+  {sessionHistory.map((item, index) => (
+    <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
+      <div className="card-header">
+        <span className="status-dot"></span>
+        <span className="card-status">{item.status || "Completed"}</span>
+        <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
+      </div>
+      <p className="card-advice-preview">{item.advice?.substring(0, 45)}...</p>
+      <span className="card-date">{new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+    </div>
+  ))}
+</div>
 
         {/* 3. CENTER COLUMN: CONTROLS & CHART */}
         <main className="main-center">
