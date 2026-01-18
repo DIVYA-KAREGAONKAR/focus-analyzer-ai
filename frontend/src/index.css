@@ -158,6 +158,53 @@ body {
 }
 
 
+@media (max-width: 900px) {
+  .layout-body {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-right {
+    position: static;
+    margin-top: 24px;
+  }
+}
+
+
+
+/* ================= LAYOUT ALIGNMENT FIX ================= */
+
+.layout-body {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  gap: 24px;
+  padding: 24px;
+  align-items: start;
+}
+
+/* Left history */
+.history-list {
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+/* Center main area */
+.main-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.sidebar-right {
+  width: 100%;
+}
+
+.ai-card {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 26px rgba(99, 102, 241, 0.12);
+}
 
 
  

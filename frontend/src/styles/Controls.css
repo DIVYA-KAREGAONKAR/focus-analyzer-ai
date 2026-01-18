@@ -1,11 +1,12 @@
 .controls-wrapper {
   width: 100%;
-  max-width: 560px;
-  background: var(--bg-surface);
+  max-width: 720px;
+  background: white;
+  border-radius: 20px;
   padding: 28px;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.15);
 }
+
 
 .btn-group {
   display: flex;
