@@ -18,7 +18,8 @@ function App() {
   const [sessionData, setSessionData] = useState(null);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [advice, setAdvice] = useState("");
-
+// Add this with your other useState lines
+const [isProcessing, setIsProcessing] = useState(false);
   // 1. Persistence Check: Stay logged in on refresh
   useEffect(() => {
     const savedUser = localStorage.getItem("focusUser");
@@ -80,40 +81,37 @@ function App() {
     // App.js - Updated handleEvent "STOP"
 if (type === "STOP") {
       const end = Date.now();
+      setStartTime(null); // Stop the timer immediately
+      setIsProcessing(true); // <--- SHOW LOADING SCREEN
+      
       const durationMin = (end - startTime) / 60000;
       const activeRatio = activeTime / ((end - startTime) / 1000);
       
-      const sessionData = {
+      const sessionDataPayload = {
         duration: durationMin,
         switch_count: switchCount,
         active_ratio: activeRatio,
         switch_rate: switchCount / (durationMin || 1)
       };
 
-      // 1. ASK ML FOR STATUS
       try {
-        const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionData);
-        
-        const prediction = predRes.data.prediction; // 0 or 1
+        // 1. Get Prediction
+        const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionDataPayload);
+        const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
-        
-        // 2. DETERMINE STATUS STRING
         const status = (prediction === 1) ? "Focused" : "Distracted";
-        
-        console.log(`📡 Frontend Status: ${status} (ML: ${prediction})`);
 
-        // 3. ASK FOR ADVICE (Passing the correct status)
+        // 2. Get Advice
         const adviceRes = await axios.post(`${API_BASE_URL}/api/advice`, {
           concPercent: confidence,
           status: status 
         });
-        
         const finalAdvice = adviceRes.data.advice;
-        setAdvice(finalAdvice); // Update UI
-        
-        // 4. SAVE TO DB
-        await axios.post(`${API_BASE_URL}/api/history`, {
-           userId: user.id,
+        setAdvice(finalAdvice);
+
+        // 3. Save to History
+        const saveRes = await axios.post(`${API_BASE_URL}/api/history`, {
+           userId: user.id || user._id, // Ensure ID is sent
            duration: durationMin,
            switch_count: switchCount,
            active_ratio: activeRatio,
@@ -121,12 +119,16 @@ if (type === "STOP") {
            advice: finalAdvice
         });
 
+        // 4. UPDATE UI WITH RESULT
+        setSessionData(saveRes.data);
+        setSessionHistory([saveRes.data, ...sessionHistory]);
+
       } catch (err) {
         console.error("Process Failed:", err);
-        setAdvice("System could not analyze session.");
+        setAdvice("Could not analyze session. Please check connection.");
+      } finally {
+        setIsProcessing(false); // <--- HIDE LOADING SCREEN (Reveal Result)
       }
-      
-      setStartTime(null);
     }
   };
 
@@ -185,33 +187,39 @@ return (
       </div>
 
       {/* 3. CENTER COLUMN: MAIN CONTENT */}
-      <main className="main-center">
-        <div className="content-scroll-area">
-          {/* Chart Section */}
-          <div className="chart-wrapper">
-            <FocusChart history={sessionHistory} />
+     <main className="main-center">
+        {/* CASE 1: LOADING */}
+        {isProcessing && (
+          <div className="processing-state">
+            <div className="spinner"></div>
+            <h3>Analyzing Neural Flow...</h3>
+            <p>Consulting AI Model & Generating Advice</p>
           </div>
+        )}
 
-          {/* Report Section */}
-          {sessionData ? (
-            <div className="insight-card-middle">
-              <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
-              <button className="ctrl-btn switch" style={{ marginTop: '20px', fontSize: '0.9rem', padding: '10px 20px' }} onClick={downloadPDF}>
-                 Download PDF Report
-              </button>
-            </div>
-          ) : (
-            <div className="welcome-message" style={{textAlign: 'center', marginTop: '40px', opacity: 0.6}}>
-              <h2>Ready to focus, {user.name.split(' ')[0]}?</h2>
-              <p>Press Start below to begin tracking your flow state.</p>
-            </div>
-          )}
-        </div>
+        {/* CASE 2: SHOW RESULT (Only if not processing AND data exists) */}
+        {!isProcessing && sessionData && (
+          <SessionResult sessionData={sessionData} />
+        )}
 
-        {/* 4. BOTTOM BAR: CONTROLS */}
-        <div className="bottom-input-area">
-          <Controls onEvent={handleEvent} />
-        </div>
+        {/* CASE 3: ACTIVE TIMER */}
+        {!isProcessing && !sessionData && startTime && (
+           /* ... Your existing Timer Component ... */
+           <div className="timer-display">
+              {/* (Keep your existing timer code here) */}
+              <h1>{new Date(Date.now() - startTime).toISOString().substr(11, 8)}</h1>
+              {/* ... */}
+           </div>
+        )}
+
+        {/* CASE 4: START SCREEN (Default) */}
+        {!isProcessing && !sessionData && !startTime && (
+           /* ... Your existing FocusChart or Welcome Message ... */
+           <div className="welcome-screen">
+             <FocusChart history={sessionHistory} />
+             {/* ... */}
+           </div>
+        )}
       </main>
     </div>
   </div>
