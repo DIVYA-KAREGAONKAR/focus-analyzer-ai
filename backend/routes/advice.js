@@ -1,42 +1,53 @@
+// backend/routes/advice.js
 import express from "express";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
-// Configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// Use Gemini 1.5 Flash for speed and reliability (Adjust model name as needed for your API)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+// 1. Select Model
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-flash",
+  // 2. CONFIGURATION: Force longer output
+  generationConfig: {
+    maxOutputTokens: 600, // Allow up to ~400 words
+    temperature: 0.7,     // Creative but stable
+  }
+});
 
 router.post("/", async (req, res) => {
-  const { concPercent, status } = req.body; // status is "Focused" or "Distracted"
+  const { concPercent, status } = req.body;
 
-  // --- NEW DETAILED PROMPT ---
+  // 3. PROMPT: Explicitly demand length and structure
   const prompt = `
-    You are an elite productivity and neuro-performance coach. 
-    The user is currently in a "${status}" state with a focus intensity of ${concPercent}%.
+    Role: You are an elite neuro-performance coach writing a session report.
+    Context: The user finished a work session with a focus score of ${concPercent}% (${status}).
+    
+    Task: Write a detailed 4-paragraph analysis. Do not be brief. You must cover:
+    
+    1.  **State Analysis**: Define exactly what a ${concPercent}% score means for their cognitive load.
+    2.  **Psychological Impact**: Explain the mental cost or benefit of this specific state (e.g. dopamine levels, cortisol, flow state depth).
+    3.  **Corrective/Sustaining Strategy**: Provide one specific, advanced protocol (e.g. "Non-Sleep Deep Rest", "40Hz Binaural Beats", "The 5-4-3-2-1 Grounding Method"). Explain how to do it in 2-3 sentences.
+    4.  **Neuroplasticity Tip**: Give advice on how to train the brain to improve this baseline next time.
 
-    Please provide a comprehensive, detailed analysis in the following format (do not use markdown bolding like ** text ** just use plain text):
-
-    1. Deep Dive Analysis: Explain exactly what a ${concPercent}% focus level means for their brain right now. Is it deep work, shallow work, or fragmented attention?
-    2. Cognitive Impact: Describe the psychological effect of this state. How does it affect their creativity, mental fatigue, and decision-making capability?
-    3. Immediate Strategy: Provide a specific, actionable technique to either maintain this high level or recover from this distraction (e.g., Pomodoro adjustment, box breathing, sensory deprivation).
-    4. Long-term Optimization: Give one tip on how to train the brain to improve this specific metric over time.
-
-    Keep the tone professional, encouraging, and scientifically grounded.
+    Output Rules:
+    - Write at least 150 words.
+    - Use professional, scientific tone.
+    - Do NOT use markdown symbols like ** or #. Just use plain text with line breaks.
   `;
 
   try {
     const result = await model.generateContent(prompt);
     const adviceText = result.response.text();
     
-    // Clean up any markdown symbols if Gemini adds them (optional safety)
-    const cleanAdvice = adviceText.replace(/\*\*/g, "").replace(/\*/g, "-");
-
+    // Clean formatting just in case
+    const cleanAdvice = adviceText.replace(/\*\*/g, "").replace(/#/g, "");
+    
     res.json({ advice: cleanAdvice });
   } catch (err) {
-    console.error("AI Generation Error:", err);
-    res.json({ advice: "System is analyzing your complex flow state. Please stay centered and continue working while we recalibrate." });
+    console.error("AI Error:", err);
+    res.json({ advice: "Analysis unavailable. Maintain your current workflow and attempt to minimize task-switching for the next 20 minutes." });
   }
 });
 

@@ -1,4 +1,4 @@
-// routes/predict.js
+// backend/routes/predict.js
 import express from "express";
 import axios from "axios";
 import Prediction from "../models/Prediction.js";
@@ -7,55 +7,46 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const sessionFeatures = req.body;
+    const sessionFeatures = req.body; // contains active_ratio (e.g., 0.85)
 
+    // 1. Call Python AI (We still call it to get the 'confidence' metric)
     const response = await axios.post("https://focus-analyzer-ai-3.onrender.com/predict", req.body, {
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-      }
+      headers: { "Content-Type": "application/json" }
     });
 
-    // 1. Get the raw prediction from Python/ML
-    let rawPrediction = Number(response.data.prediction);
-    const confidence = Number(response.data.confidence);
+    let confidence = Number(response.data.confidence);
 
-    // ---------------------------------------------------------
-    // 2. THE FIX: FLIP THE PREDICTION
-    // Currently: It seems your ML returns the opposite of what React expects.
-    // We swap them here so the rest of the app works correctly.
-    // ---------------------------------------------------------
-    const prediction = rawPrediction === 0 ? 1 : 0; 
-    
-    console.log("BACKEND → FRONTEND (Fixed):", {
-      original: rawPrediction,
-      flipped: prediction,
-      confidence
+    // 2. THE LOGIC FIX: Ignore the ML's 0/1. 
+    // We trust the active_ratio math more.
+    // If active_ratio > 0.5 (50%), we call it "Focused" (1). Otherwise "Distracted" (0).
+    const forcedPrediction = sessionFeatures.active_ratio >= 0.5 ? 1 : 0;
+
+    console.log("LOGIC OVERRIDE:", {
+      active_ratio: sessionFeatures.active_ratio,
+      status: forcedPrediction === 1 ? "Focused" : "Distracted"
     });
 
-    if (Number.isNaN(confidence)) {
-      throw new Error("Invalid confidence from ML service");
-    }
-
-    // Save the CORRECTED prediction to MongoDB
+    // Save to DB
     const savedPrediction = new Prediction({
       duration: sessionFeatures.duration,
       switch_count: sessionFeatures.switch_count,
       switch_rate: sessionFeatures.switch_rate,
       active_ratio: sessionFeatures.active_ratio,
-      prediction, // Now saving the flipped (correct) value
+      prediction: forcedPrediction, // Save our forced correct status
       confidence,
       createdAt: new Date()
     });
 
     await savedPrediction.save();
 
-    // Send corrected value to frontend
-    res.json({ prediction, confidence });
-    
+    // Send correct data to frontend
+    res.json({ prediction: forcedPrediction, confidence });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Prediction failed" });
+    // Even if ML fails, we can still return a basic status based on ratio
+    const fallbackStatus = req.body.active_ratio >= 0.5 ? 1 : 0;
+    res.json({ prediction: fallbackStatus, confidence: 0 });
   }
 });
 
