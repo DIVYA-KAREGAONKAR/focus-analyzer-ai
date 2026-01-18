@@ -141,7 +141,7 @@ if (type === "STOP") {
 
       <div className="layout-body">
         {/* 2. LEFT SIDEBAR: HISTORY */}
-        // Inside App.js Sidebar-left
+       
 <div className="history-list">
   {sessionHistory.map((item, index) => (
     <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
