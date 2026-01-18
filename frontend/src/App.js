@@ -128,70 +128,71 @@ if (type === "STOP") {
   return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
 }
 
-  return (
-    <div className="chat-layout">
-      {/* 1. TOP NAVBAR */}
-      <nav className="navbar">
-        <div className="nav-logo">Focus Analyzer AI</div>
-        <div className="nav-user">
-          <span>{user.name}</span>
-          <button onClick={handleLogout} className="logout-link">Sign Out</button>
-        </div>
-      </nav>
+  // ... (imports remain the same)
 
-      <div className="layout-body">
-        {/* 2. LEFT SIDEBAR: HISTORY */}
-        <div className="history-list">
-          {sessionHistory.map((item, index) => (
-            <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
-              <div className="card-header">
-                <span className="status-dot"></span>
-                <span className="card-status">{item.status || "Completed"}</span>
-                <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
-              </div>
-              {/* Shortened preview for cleaner look */}
-              <span className="card-date">{new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* 3. CENTER COLUMN: MAIN CONTENT */}
-        <main className="main-center">
-          
-          {/* Scrollable Area (Chart + Insights) */}
-          <div className="content-scroll-area">
-            
-            {/* Chart is always visible at top */}
-            <div className="chart-wrapper">
-              <FocusChart history={sessionHistory} />
-            </div>
-
-            {/* AI Insights (Appears in middle now) */}
-            {sessionData ? (
-              <div className="insight-card-middle">
-                <h3>AI Analysis Report</h3>
-                <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
-                <button className="ctrl-btn switch" style={{ marginTop: '20px', width: 'auto' }} onClick={downloadPDF}>
-                  Download PDF Report
-                </button>
-              </div>
-            ) : (
-              <div className="welcome-message">
-                <h1>Hello, {user.name.split(' ')[0]}</h1>
-                <p>Ready to analyze your flow? Press <b>Start</b> below.</p>
-              </div>
-            )}
-          </div>
-
-          {/* 4. BOTTOM BAR: CONTROLS (Fixed) */}
-          <div className="bottom-input-area">
-            <Controls onEvent={handleEvent} />
-          </div>
-
-        </main>
+// Inside the App component return:
+return (
+  <div className="chat-layout">
+    {/* 1. TOP NAVBAR - With Styled User Pill */}
+    <nav className="navbar">
+      <div className="nav-logo">Focus Analyzer AI</div>
+      
+      {/* Styled User Area */}
+      <div className="nav-user">
+        <span>{user.name}</span>
+        <button onClick={handleLogout} className="logout-link">Sign Out</button>
       </div>
+    </nav>
+
+    <div className="layout-body">
+      {/* 2. LEFT SIDEBAR: Full Height & Wider */}
+      <div className="history-list">
+        <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
+        {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
+        
+        {sessionHistory.map((item, index) => (
+          <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
+            <div style={{display:'flex', alignItems:'center'}}>
+              <span className="status-dot"></span>
+              <span className="card-status">{item.status || "Completed"}</span>
+            </div>
+            <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
+          </div>
+        ))}
+      </div>
+
+      {/* 3. CENTER COLUMN: MAIN CONTENT */}
+      <main className="main-center">
+        <div className="content-scroll-area">
+          {/* Chart Section */}
+          <div className="chart-wrapper">
+            <FocusChart history={sessionHistory} />
+          </div>
+
+          {/* Report Section */}
+          {sessionData ? (
+            <div className="insight-card-middle">
+              <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
+              <button className="ctrl-btn switch" style={{ marginTop: '20px', fontSize: '0.9rem', padding: '10px 20px' }} onClick={downloadPDF}>
+                 Download PDF Report
+              </button>
+            </div>
+          ) : (
+            <div className="welcome-message" style={{textAlign: 'center', marginTop: '40px', opacity: 0.6}}>
+              <h2>Ready to focus, {user.name.split(' ')[0]}?</h2>
+              <p>Press Start below to begin tracking your flow state.</p>
+            </div>
+          )}
+        </div>
+
+        {/* 4. BOTTOM BAR: CONTROLS */}
+        <div className="bottom-input-area">
+          <Controls onEvent={handleEvent} />
+        </div>
+      </main>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;

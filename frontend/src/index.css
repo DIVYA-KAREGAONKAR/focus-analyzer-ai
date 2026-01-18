@@ -1,286 +1,183 @@
-/* =========================================
-   1. VARIABLES (Gemini Light Theme)
-   ========================================= */
 :root {
-  /* Backgrounds */
-  --bg-app: #ffffff;           /* Main White */
-  --bg-sidebar: #f0f4f9;       /* Light Grey-Blue (Gemini Sidebar) */
-  --bg-surface: #ffffff;
-  --bg-input: #f0f4f9;         /* Bottom Bar BG */
-
-  /* Text */
-  --text-main: #1f1f1f;        /* Near Black */
-  --text-secondary: #444746;   /* Dark Grey */
-  
-  /* Accents */
-  --primary: #0b57d0;          /* Google Blue */
-  --accent-glow: rgba(11, 87, 208, 0.15);
-  
-  /* Status Colors */
-  --focus-color: #14ae5c;      /* Green */
-  --distract-color: #db342d;   /* Red */
-
-  /* Dimensions */
-  --sidebar-width: 260px;
-  --navbar-height: 60px;
+  --bg-app: #ffffff;
+  --bg-sidebar: #f8f9fa;       /* Very light grey for sidebar */
+  --bg-input: #ffffff;         /* White background for controls */
+  --primary: #0b57d0;          /* Gemini Blue */
+  --text-main: #1f1f1f;
+  --text-secondary: #444746;
+  --focus-color: #14ae5c;
+  --distract-color: #db342d;
+  --sidebar-width: 320px;      /* WIDER Sidebar */
+  --navbar-height: 70px;       /* Taller Navbar */
   --radius-lg: 24px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-body {
-  background-color: var(--bg-app);
-  color: var(--text-main);
-  height: 100vh;
-  overflow: hidden;
-}
+body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; overflow: hidden; }
 
-/* =========================================
-   2. LAYOUT STRUCTURE
-   ========================================= */
-.chat-layout {
+/* --- LAYOUT --- */
+.chat-layout { display: flex; flex-direction: column; height: 100vh; }
+.layout-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+
+/* --- NAVBAR (Styled User Area) --- */
+.navbar {
+  height: var(--navbar-height);
   display: flex;
-  flex-direction: column;
-  height: 100vh;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  background: white;
+  border-bottom: 1px solid #f0f0f0;
+  z-index: 20;
 }
+.nav-logo { font-weight: 700; font-size: 1.4rem; color: var(--primary); letter-spacing: -0.5px; }
 
-.layout-body {
+/* New User Profile "Pill" */
+.nav-user {
   display: flex;
-  flex: 1;
-  overflow: hidden;
+  align-items: center;
+  gap: 12px;
+  background: #f0f4f9;
+  padding: 6px 8px 6px 20px;
+  border-radius: 50px;
+  transition: all 0.2s;
 }
+.nav-user span { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
+.logout-link {
+  background: white;
+  border: 1px solid #e0e0e0;
+  color: var(--distract-color);
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.logout-link:hover { background: var(--distract-color); color: white; border-color: var(--distract-color); }
 
-/* =========================================
-   3. SIDEBAR (History)
-   ========================================= */
+/* --- LEFT SIDEBAR (Full Height & Wider) --- */
 .history-list {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
-  padding: 1rem;
+  height: 100%; /* Force full height */
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
   overflow-y: auto;
-  border-right: none;
+  border-right: 1px solid #eff1f4;
 }
 
 .history-card {
-  padding: 10px 16px;
-  margin-bottom: 8px;
-  border-radius: 50px; /* Pill Shape */
+  padding: 16px;
+  margin-bottom: 12px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+.history-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
 
-.history-card:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
+.card-status { font-weight: 600; font-size: 0.9rem; }
+.card-score { background: #f1f3f4; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; color: #444; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 12px; }
+.history-card.focused .status-dot { background: var(--focus-color); }
+.history-card.distracted .status-dot { background: var(--distract-color); }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.history-card.focused .status-dot { background-color: var(--focus-color); }
-.history-card.distracted .status-dot { background-color: var(--distract-color); }
-
-.card-status { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
-.card-score { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; background: #e3e3e3; padding: 2px 8px; border-radius: 10px; }
-.card-date { display: none; } /* Hide date for cleaner list */
-.card-advice-preview { display: none; } /* Hide preview */
-
-/* =========================================
-   4. CENTER AREA (Scrollable)
-   ========================================= */
-.main-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  background: var(--bg-app);
-}
+/* --- CENTER AREA --- */
+.main-center { flex: 1; display: flex; flex-direction: column; position: relative; background: white; }
 
 .content-scroll-area {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem 15%; /* Center the content */
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  padding-bottom: 140px; /* Space for bottom bar */
+  padding: 2rem 10%;
+  padding-bottom: 160px; /* Space for big bottom controls */
 }
 
-/* Welcome Message */
-.welcome-message {
-  margin-top: 10%;
-  text-align: left;
-}
-.welcome-message h1 {
-  font-size: 3.5rem;
-  background: linear-gradient(90deg, #4285f4, #d96570);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
-}
-.welcome-message p {
-  font-size: 1.5rem;
-  color: #c4c7c5;
-}
-
-/* Chart */
+/* Chart Wrapper */
 .chart-wrapper {
-  background: #ffffff;
+  background: white;
   border: 1px solid #e0e0e0;
-  border-radius: var(--radius-lg);
+  border-radius: 24px;
   padding: 1.5rem;
-  height: 250px;
+  height: 320px; /* Taller chart */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  margin-bottom: 2rem;
+  animation: fadeIn 0.8s ease;
 }
 
-/* Middle Insights Card */
-.insight-card-middle {
-  animation: slideUp 0.5s ease;
-}
-.insight-card-middle h3 {
-  font-size: 1.2rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-}
+/* Results Area */
+.insight-card-middle { animation: slideUp 0.5s ease; }
+.badge { display: inline-block; padding: 8px 16px; border-radius: 12px; font-weight: 700; margin-bottom: 1rem; }
+.badge.focused { background: #d1fae5; color: #065f46; }
+.badge.distracted { background: #fee2e2; color: #991b1b; }
 
-/* =========================================
-   5. BOTTOM CONTROLS (Input Area)
-   ========================================= */
+.advice-box {
+  background: #f8fafd;
+  border: 1px solid #e0e6ed;
+  padding: 2rem;
+  border-radius: 20px;
+  margin-top: 1rem;
+  box-shadow: 0 10px 30px rgba(11, 87, 208, 0.05);
+}
+.advice-box h4 { color: var(--primary); font-size: 1.1rem; margin-bottom: 0.8rem; }
+.advice-box p { color: #4b5563; line-height: 1.7; font-size: 1rem; }
+
+/* --- BOTTOM CONTROLS (Bigger & Focused) --- */
 .bottom-input-area {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(to top, #ffffff 80%, rgba(255,255,255,0));
-  padding: 2rem 0;
+  bottom: 0; left: 0; right: 0;
+  height: 140px; /* Taller area */
+  background: linear-gradient(to top, white 85%, transparent);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 10;
 }
 
-/* Override Controls.jsx container */
+/* The "Pill" Container */
 .controls-card {
-  background: var(--bg-input); /* Light Grey Pill */
-  padding: 10px 15px;
-  border-radius: 50px;
-  box-shadow: none;
+  background: #f0f4f9;
+  padding: 12px 16px;
+  border-radius: 60px;
   display: flex;
-  align-items: center;
   gap: 1rem;
-  width: auto;
-  min-width: 400px;
-  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border: 1px solid #ffffff;
+  transform: scale(1.1); /* Make the whole bar bigger */
+  transition: transform 0.2s;
 }
+.controls-card:hover { transform: scale(1.12); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+.controls-card h3, .controls-card p { display: none; }
 
-/* Hide extra text in Controls.jsx */
-.controls-card h3, .controls-card p {
-  display: none; 
-}
+.btn-group { display: flex; gap: 12px; margin: 0 !important; }
 
 /* Buttons */
-.btn-group {
-  display: flex;
-  gap: 12px;
-  margin: 0 !important;
-}
-
 .ctrl-btn {
-  padding: 10px 24px;
-  border-radius: 30px;
+  padding: 14px 32px;
+  border-radius: 40px;
   border: none;
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.2s;
 }
+.ctrl-btn.start { background: #1f1f1f; color: white; }
+.ctrl-btn.start:hover { background: black; transform: translateY(-2px); }
+.ctrl-btn.switch { background: white; color: #1f1f1f; border: 1px solid #e0e0e0; }
+.ctrl-btn.switch:hover { background: #f8f9fa; }
+.ctrl-btn.stop { background: #fee2e2; color: #991b1b; }
+.ctrl-btn.stop:hover { background: #fecaca; }
 
-.ctrl-btn.start {
-  background: var(--text-main); /* Black Start Button */
-  color: white;
-}
-.ctrl-btn.start:hover { background: black; transform: scale(1.05); }
-
-.ctrl-btn.switch {
-  background: #e1e3e1;
-  color: var(--text-main);
-}
-.ctrl-btn.switch:hover { background: #d3d5d3; }
-
-.ctrl-btn.stop {
-  background: #f2b8b5;
-  color: #601410;
-}
-.ctrl-btn.stop:hover { background: #ea868f; }
-
-
-/* =========================================
-   6. SESSION RESULT STYLING (Light Mode)
-   ========================================= */
-.badge {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-.badge.focused { background: #c4eed0; color: #045c2f; }
-.badge.distracted { background: #f9d7db; color: #8c1d18; }
-
-.progress-bar {
-  background: #e0e0e0;
-  height: 6px;
-  border-radius: 10px;
-}
-
-.advice-box {
-  background: #f8fafd;
-  border-left: 4px solid #0b57d0;
-  padding: 1.5rem;
-  border-radius: 12px;
-  margin-top: 1.5rem;
-}
-.advice-box.focused { border-color: var(--focus-color); background: #f0fdf4; }
-.advice-box.distracted { border-color: var(--distract-color); background: #fef2f2; }
-
-.advice-box h4 { margin-bottom: 0.5rem; color: var(--text-main); }
-.advice-box p { color: var(--text-secondary); line-height: 1.6; }
-
-/* =========================================
-   7. NAVBAR & ANIMATIONS
-   ========================================= */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: var(--bg-app);
-}
-.nav-logo { font-weight: 600; font-size: 1.2rem; color: var(--text-secondary); }
-.logout-link { border: none; background: none; color: var(--primary); cursor: pointer; font-weight: 500; }
-
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 
 
