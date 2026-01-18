@@ -38,16 +38,16 @@ const FocusChart = ({ history }) => {
     responsive: true,
     maintainAspectRatio: false,
     
-    // --- THIS IS THE FIX ---
+    // --- FIX: Force extra space at the bottom for labels ---
     layout: {
       padding: {
-        bottom: 30,  // Adds 30px of "safe zone" at the bottom for text
-        left: 10,
-        right: 10,
+        bottom: 40,  // Increased from 30 to 40
+        left: 20,    // Added side padding so first/last points don't get cut
+        right: 20,
         top: 10
       }
     },
-    // -----------------------
+    // ------------------------------------------------------
     
     animation: {
       duration: 2000,
@@ -71,16 +71,20 @@ const FocusChart = ({ history }) => {
         min: 0, 
         max: 100,
         grid: { color: '#f0f0f0', borderDash: [5, 5] },
-        ticks: { color: '#9ca3af', font: { size: 11 }, padding: 10 }
+        ticks: { 
+          color: '#9ca3af', 
+          font: { size: 11 }, 
+          padding: 10 
+        }
       },
       x: { 
         grid: { display: false },
         ticks: { 
           color: '#6b7280', 
           font: { size: 11, weight: '600' },
-          maxRotation: 0, // Keeps text flat
-          autoSkip: true, // Prevents overlapping
-          padding: 15     // Pushes text further down from the line
+          maxRotation: 0, 
+          autoSkip: true, 
+          padding: 15     // Pushes text down slightly from the x-axis line
         }
       }
     }
