@@ -1,94 +1,53 @@
-import { useEffect, useState } from "react";
-import { getPrediction } from "../api/predict";
-import { getAdvice } from "../api/advice";
+import { useEffect } from "react";
+import "../index.css"; 
 
-
-function SessionResult({ sessionData, setAdvice }) {
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [localAdvice, setLocalAdvice] = useState(""); 
-
-  useEffect(() => {
-    if (!sessionData) return;
-
-    const predict = async () => {
-      try {
-        setLoading(true);
-        setResult(null); 
-        setLocalAdvice("");
-
-        const res = await getPrediction(sessionData);
-        
-        if (res && typeof res.confidence === "number") {
-          setResult(res);
-          const adviceText = await getAdvice(res.prediction, res.confidence);
-          setLocalAdvice(adviceText);
-          setAdvice(adviceText); 
-
-          // Trigger Active Nudge if Distracted
-          // Assuming 1 = Focused, 0 = Distracted based on your current logic
-          if (res.prediction === 0 && Notification.permission === "granted") {
-            new Notification("🎯 Focus Analyzer Alert", {
-              body: adviceText || "You've drifted! Time to refocus.",
-              icon: "/logo192.png", 
-              silent: false
-            });
-          }
-        } else {
-          setResult({ prediction: res?.prediction ?? 0, confidence: 0 });
-        }
-      } catch (err) {
-        console.error("Prediction failed", err);
-        setResult({ prediction: 0, confidence: 0 });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    predict();
-  }, [sessionData, setAdvice]);
-
+function SessionResult({ sessionData }) {
   if (!sessionData) return null;
 
-  const isFocused = result?.prediction === 1;
-  const confidencePercent = result ? Math.round(result.confidence * 100) : 0;
+  const isFocused = sessionData.status === "Focused";
+  const confidencePercent = Math.round(sessionData.active_ratio * 100);
+  
+  // SAFETY FIX: Ensure adviceText is always a string, never null/undefined
+  const adviceText = typeof sessionData.advice === 'string' ? sessionData.advice : "Analysis unavailable.";
 
   return (
     <div className="result-container">
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <p>AI is analyzing your behavior...</p>
+      <div className="result-content">
+        
+        {/* Status Badge */}
+        <div className={`badge ${isFocused ? "focused" : "distracted"}`}>
+          {isFocused ? "🎯 Focused" : "⚠️ Distracted"}
         </div>
-      ) : result && (
-        <div className="result-content">
-          <div className={`badge ${isFocused ? "focused" : "distracted"}`}>
-            {isFocused ? "🎯 Focused" : "⚠️ Distracted"}
-          </div>
 
-          <div className="metrics-row">
-            <span>Intensity: {confidencePercent}%</span>
-          </div>
-
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{
-                width: `${confidencePercent}%`,
-                backgroundColor: isFocused ? "var(--neon-green)" : "var(--neon-red)",
-                boxShadow: `0 0 10px ${isFocused ? "var(--neon-green)" : "var(--neon-red)"}`,
-                transition: 'width 1s ease-in-out'
-              }}
-            />
-          </div>
-
-          {localAdvice && (
-            <div className={`advice-box ${isFocused ? "focused" : "distracted"}`}>
-              <h4>{isFocused ? "🚀 Flow Sustained" : "🧭 Refocus Strategy"}</h4>
-              <p>{localAdvice}</p>
-            </div>
-          )}
+        {/* Metrics */}
+        <div className="metrics-row">
+          <span>Focus Intensity: {confidencePercent}%</span>
         </div>
-      )}
+
+        {/* Progress Bar */}
+        <div className="progress-bar">
+          <div
+            className="progress-fill"
+            style={{
+              width: `${confidencePercent}%`,
+              backgroundColor: isFocused ? "var(--focus-color)" : "var(--distract-color)",
+              boxShadow: `0 0 10px ${isFocused ? "rgba(20, 174, 92, 0.5)" : "rgba(219, 52, 45, 0.5)"}`,
+              transition: 'width 1s ease-in-out'
+            }}
+          />
+        </div>
+
+        {/* Advice Box (Fixed Logic) */}
+        <div className={`advice-box ${isFocused ? "focused" : "distracted"}`}>
+            <h4>{isFocused ? "🚀 Flow Analysis" : "🧭 Strategy for Improvement"}</h4>
+            
+            {/* The .split() function caused the crash. We added (adviceText || "") to prevent it. */}
+            {(adviceText || "").split('\n').map((line, i) => (
+               line.trim() && <p key={i} style={{marginBottom:'10px'}}>{line}</p>
+            ))}
+        </div>
+
+      </div>
     </div>
   );
 }
