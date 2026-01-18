@@ -1,46 +1,48 @@
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import axios from "axios"; // Using standard HTTP instead of Google library
 
 const router = express.Router();
 
-// Fallback function (Keeps the app running if Google is down)
-const getFallbackAdvice = (status) => {
-  return status === "Focused" 
-    ? "Great momentum. Keep this flow state going." 
-    : "Distractions detected. Take a deep breath and reset.";
-};
-
 router.post("/", async (req, res) => {
   const { concPercent, status } = req.body;
-  
-  if (!process.env.GEMINI_API_KEY) {
-    console.warn("⚠️ No API Key found. Using fallback.");
-    return res.json({ advice: getFallbackAdvice(status) });
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  // 1. Check if Key exists in Environment
+  if (!apiKey) {
+    console.error("❌ ERROR: GEMINI_API_KEY is missing in Render Environment Variables.");
+    return res.json({ advice: "Analysis saved. (API Key missing)" });
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    // 2. DIRECT HTTP CALL (Bypasses the "Old Library" issue)
+    // We manually type the URL for Gemini 1.5 Flash
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
-    // ✅ CHANGED: Switched to the modern, supported model
-    // This works because you updated your package.json to version 0.24.1+
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const payload = {
+      contents: [{
+        parts: [{
+          text: `The user was ${status} (Focus Score: ${concPercent}%). Give 1 short sentence of advice.`
+        }]
+      }]
+    };
 
-    const prompt = `
-      Context: User was ${status} (Score: ${concPercent}%).
-      Task: Write 1 short, encouraging sentence of advice.
-    `;
+    // 3. Send Request
+    const response = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" }
+    });
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const adviceText = response.text();
+    // 4. Extract Answer
+    const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    console.log("✅ AI Advice Generated Successfully");
-    res.json({ advice: adviceText });
+    console.log("✅ AI Advice Success (Via Raw HTTP)");
+    res.json({ advice: adviceText || "Keep up the good work!" });
 
   } catch (err) {
-    console.error("❌ Gemini Error (Using Fallback):", err.message);
-    // This ensures your frontend NEVER crashes
-    res.json({ advice: getFallbackAdvice(status) });
+    // Detailed Error Logging
+    console.error("❌ API ERROR:", err.response?.data?.error?.message || err.message);
+    
+    // Fallback so app doesn't crash
+    res.json({ advice: status === "Focused" ? "Great focus! Keep it up." : "Distractions detected. Refocus." });
   }
 });
 
