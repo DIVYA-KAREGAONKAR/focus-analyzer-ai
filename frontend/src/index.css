@@ -1,35 +1,29 @@
 /* =========================================
-   1. VARIABLES & RESET (Modern Palette)
+   1. VARIABLES (Gemini Light Theme)
    ========================================= */
 :root {
-  /* --- Backgrounds --- */
-  --bg-app: #0f111a;       /* Deepest Void (Main BG) */
-  --bg-panel: #181b29;     /* Left Sidebar BG */
-  --bg-glass: rgba(30, 33, 48, 0.7);
-  --bg-hover: rgba(255, 255, 255, 0.05);
-
-  /* --- Dimensions --- */
-  --sidebar-width: 280px;        /* Left History Sidebar */
-  --sidebar-right-width: 400px;  /* RIGHT AI Sidebar (Wider now) */
-  --navbar-height: 64px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-
-  /* --- Accents (Gemini/Neon Style) --- */
-  --primary: #7c3aed;      /* Violet */
-  --primary-glow: rgba(124, 58, 237, 0.4);
-  
-  /* Status Colors */
-  --success: #10b981;      /* Emerald */
-  --danger: #f43f5e;       /* Rose */
-
-  /* --- New Modern Gradients for Advice Cards --- */
-  --gradient-focused: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 95, 70, 0.3) 100%);
-  --gradient-distracted: linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(136, 19, 55, 0.3) 100%);
+  /* Backgrounds */
+  --bg-app: #ffffff;           /* Main White */
+  --bg-sidebar: #f0f4f9;       /* Light Grey-Blue (Gemini Sidebar) */
+  --bg-surface: #ffffff;
+  --bg-input: #f0f4f9;         /* Bottom Bar BG */
 
   /* Text */
-  --text-main: #f3f4f6;
-  --text-dim: #9ca3af;
+  --text-main: #1f1f1f;        /* Near Black */
+  --text-secondary: #444746;   /* Dark Grey */
+  
+  /* Accents */
+  --primary: #0b57d0;          /* Google Blue */
+  --accent-glow: rgba(11, 87, 208, 0.15);
+  
+  /* Status Colors */
+  --focus-color: #14ae5c;      /* Green */
+  --distract-color: #db342d;   /* Red */
+
+  /* Dimensions */
+  --sidebar-width: 260px;
+  --navbar-height: 60px;
+  --radius-lg: 24px;
 }
 
 * {
@@ -42,398 +36,249 @@
 body {
   background-color: var(--bg-app);
   color: var(--text-main);
-  overflow: hidden; /* App handles scrolling */
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
-
 /* =========================================
-   2. APP LAYOUT
+   2. LAYOUT STRUCTURE
    ========================================= */
 .chat-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100vw;
-  /* subtle radial gradient for depth */
-  background: radial-gradient(circle at 50% 10%, #1e2130 0%, var(--bg-app) 60%);
 }
 
 .layout-body {
   display: flex;
   flex: 1;
   overflow: hidden;
-  position: relative;
 }
 
 /* =========================================
-   3. NAVBAR
-   ========================================= */
-.navbar {
-  height: var(--navbar-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  background: rgba(15, 17, 26, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  z-index: 20;
-}
-
-.nav-logo {
-  font-size: 1.25rem;
-  font-weight: 800;
-  /* Gradient Text Logo */
-  background: linear-gradient(to right, #a78bfa, #3b82f6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: -0.5px;
-}
-
-.nav-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.9rem;
-  color: var(--text-dim);
-}
-
-.logout-link {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-main);
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s;
-}
-.logout-link:hover {
-  background: rgba(244, 63, 94, 0.1);
-  border-color: rgba(244, 63, 94, 0.4);
-  color: #fda4af;
-}
-
-/* =========================================
-   4. LEFT SIDEBAR (History)
+   3. SIDEBAR (History)
    ========================================= */
 .history-list {
   width: var(--sidebar-width);
-  background: var(--bg-panel);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  background: var(--bg-sidebar);
   padding: 1rem;
+  overflow-y: auto;
+  border-right: none;
 }
 
 .history-card {
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid transparent;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+  border-radius: 50px; /* Pill Shape */
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .history-card:hover {
-  background: var(--bg-hover);
-  border-color: rgba(255, 255, 255, 0.1);
-  transform: translateX(4px);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 10px;
+  width: 100%;
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-right: 8px;
+  flex-shrink: 0;
 }
-/* Dot Colors */
-.history-card.focused .status-dot { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
-.history-card.distracted .status-dot { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.history-card.focused .status-dot { background-color: var(--focus-color); }
+.history-card.distracted .status-dot { background-color: var(--distract-color); }
 
-.card-status { font-size: 0.85rem; font-weight: 600; }
-.card-score { font-size: 0.75rem; color: var(--text-dim); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; }
-.card-advice-preview { font-size: 0.75rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7; }
-.card-date { font-size: 0.7rem; color: #555; display: block; margin-top: 6px; text-align: right; }
+.card-status { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+.card-score { font-size: 0.8rem; color: var(--text-secondary); margin-left: auto; background: #e3e3e3; padding: 2px 8px; border-radius: 10px; }
+.card-date { display: none; } /* Hide date for cleaner list */
+.card-advice-preview { display: none; } /* Hide preview */
 
 /* =========================================
-   5. RIGHT SIDEBAR (AI Insights - BROADER)
-   ========================================= */
-.sidebar-right {
-  width: var(--sidebar-right-width); /* Uses the 400px width */
-  background: rgba(15, 17, 26, 0.95); /* Darker background for contrast */
-  border-left: 1px solid rgba(124, 58, 237, 0.15); /* Subtle purple divider */
-  display: flex;
-  flex-direction: column;
-  padding: 2rem;
-  overflow-y: auto;
-  box-shadow: -5px 0 30px rgba(0,0,0,0.3); /* Lift it off the page */
-  z-index: 10;
-}
-
-.sidebar-right h3 {
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-dim);
-  margin-bottom: 2rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 10px;
-}
-
-/* =========================================
-   6. MAIN CENTER AREA
+   4. CENTER AREA (Scrollable)
    ========================================= */
 .main-center {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 3rem 2rem;
-  gap: 3rem;
-  max-width: 1000px; /* Increased max-width for balance */
-  margin: 0 auto;
+  position: relative;
+  background: var(--bg-app);
+}
+
+.content-scroll-area {
+  flex: 1;
   overflow-y: auto;
-}
-
-/* Controls Wrapper */
-.controls-wrapper {
+  padding: 2rem 15%; /* Center the content */
   display: flex;
-  justify-content: center;
-  width: 100%;
+  flex-direction: column;
+  gap: 2rem;
+  padding-bottom: 140px; /* Space for bottom bar */
 }
 
-.controls-card {
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 2.5rem;
-  border-radius: 24px;
-  width: 100%;
-  text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+/* Welcome Message */
+.welcome-message {
+  margin-top: 10%;
+  text-align: left;
+}
+.welcome-message h1 {
+  font-size: 3.5rem;
+  background: linear-gradient(90deg, #4285f4, #d96570);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 1rem;
+}
+.welcome-message p {
+  font-size: 1.5rem;
+  color: #c4c7c5;
 }
 
+/* Chart */
 .chart-wrapper {
-  background: rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
   border-radius: var(--radius-lg);
-  padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  height: 250px;
+}
+
+/* Middle Insights Card */
+.insight-card-middle {
+  animation: slideUp 0.5s ease;
+}
+.insight-card-middle h3 {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
 }
 
 /* =========================================
-   7. CONTROLS COMPONENT (Buttons)
+   5. BOTTOM CONTROLS (Input Area)
    ========================================= */
+.bottom-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, #ffffff 80%, rgba(255,255,255,0));
+  padding: 2rem 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+/* Override Controls.jsx container */
+.controls-card {
+  background: var(--bg-input); /* Light Grey Pill */
+  padding: 10px 15px;
+  border-radius: 50px;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: auto;
+  min-width: 400px;
+  justify-content: center;
+}
+
+/* Hide extra text in Controls.jsx */
+.controls-card h3, .controls-card p {
+  display: none; 
+}
+
+/* Buttons */
 .btn-group {
   display: flex;
-  gap: 1.5rem;
-  justify-content: center;
-  margin-top: 2rem;
+  gap: 12px;
+  margin: 0 !important;
 }
 
 .ctrl-btn {
-  padding: 14px 32px;
-  border-radius: 50px;
+  padding: 10px 24px;
+  border-radius: 30px;
   border: none;
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 500;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
 }
 
-.ctrl-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-.ctrl-btn:active { transform: scale(0.95); }
-
-/* Start Button - Primary Gradient */
 .ctrl-btn.start {
-  background: linear-gradient(135deg, var(--primary), #3b82f6);
+  background: var(--text-main); /* Black Start Button */
   color: white;
-  box-shadow: 0 0 20px var(--primary-glow);
 }
+.ctrl-btn.start:hover { background: black; transform: scale(1.05); }
 
-/* Switch Button */
 .ctrl-btn.switch {
-  background: rgba(255, 255, 255, 0.08);
+  background: #e1e3e1;
   color: var(--text-main);
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.ctrl-btn.switch:hover { background: rgba(255, 255, 255, 0.15); }
+.ctrl-btn.switch:hover { background: #d3d5d3; }
 
-/* Stop Button */
 .ctrl-btn.stop {
-  background: rgba(244, 63, 94, 0.1);
-  color: #fda4af;
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: #f2b8b5;
+  color: #601410;
 }
-.ctrl-btn.stop:hover { background: var(--danger); color: white; box-shadow: 0 0 20px rgba(244, 63, 94, 0.4); }
+.ctrl-btn.stop:hover { background: #ea868f; }
+
 
 /* =========================================
-   8. SESSION RESULT (AI Insights Styling)
+   6. SESSION RESULT STYLING (Light Mode)
    ========================================= */
-.result-container {
-  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.result-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Big Status Badge */
 .badge {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: 800;
-  text-align: center;
-  font-size: 1.1rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+.badge.focused { background: #c4eed0; color: #045c2f; }
+.badge.distracted { background: #f9d7db; color: #8c1d18; }
+
+.progress-bar {
+  background: #e0e0e0;
+  height: 6px;
+  border-radius: 10px;
 }
 
-.badge.focused {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+.advice-box {
+  background: #f8fafd;
+  border-left: 4px solid #0b57d0;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 1.5rem;
 }
-.badge.distracted {
-  background: rgba(244, 63, 94, 0.15);
-  color: #fb7185;
-  border: 1px solid rgba(244, 63, 94, 0.2);
-  box-shadow: 0 0 15px rgba(244, 63, 94, 0.1);
-}
+.advice-box.focused { border-color: var(--focus-color); background: #f0fdf4; }
+.advice-box.distracted { border-color: var(--distract-color); background: #fef2f2; }
 
-.metrics-row {
+.advice-box h4 { margin-bottom: 0.5rem; color: var(--text-main); }
+.advice-box p { color: var(--text-secondary); line-height: 1.6; }
+
+/* =========================================
+   7. NAVBAR & ANIMATIONS
+   ========================================= */
+.navbar {
   display: flex;
   justify-content: space-between;
-  font-size: 0.95rem;
-  color: var(--text-dim);
-  font-weight: 500;
+  padding: 1rem 1.5rem;
+  background: var(--bg-app);
 }
+.nav-logo { font-weight: 600; font-size: 1.2rem; color: var(--text-secondary); }
+.logout-link { border: none; background: none; color: var(--primary); cursor: pointer; font-weight: 500; }
 
-/* Progress Bar */
-.progress-bar {
-  height: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-top: 5px;
-}
-.progress-fill { height: 100%; border-radius: 10px; }
-
-/* --- MODERN GRADIENT ADVICE BOX --- */
-.advice-box {
-  position: relative;
-  padding: 1.5rem;
-  border-radius: 18px;
-  backdrop-filter: blur(10px);
-  margin-top: 0.5rem;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-/* Focused Logic */
-.advice-box.focused {
-  background: var(--gradient-focused);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.05);
-}
-.advice-box.focused h4 { color: #34d399; text-shadow: 0 0 15px rgba(52, 211, 153, 0.3); }
-
-/* Distracted Logic */
-.advice-box.distracted {
-  background: var(--gradient-distracted);
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  box-shadow: inset 0 0 40px rgba(244, 63, 94, 0.05);
-}
-.advice-box.distracted h4 { color: #fb7185; text-shadow: 0 0 15px rgba(251, 113, 133, 0.3); }
-
-.advice-box h4 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.8rem;
-}
-
-.advice-box p {
-  font-size: 0.95rem;
-  line-height: 1.65;
-  color: #f3f4f6; /* Bright text for readability on gradient */
-  opacity: 0.95;
-  font-weight: 400;
-}
-
-/* =========================================
-   9. AUTH SCREEN
-   ========================================= */
-.auth-screen {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #2a2e45 0%, #0f111a 100%);
-}
-
-.auth-card {
-  width: 420px;
-  padding: 3.5rem;
-  background: rgba(30, 33, 48, 0.6);
-  backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 30px;
-  box-shadow: 0 30px 60px -10px rgba(0, 0, 0, 0.6);
-}
-
-.auth-input {
-  width: 100%;
-  padding: 14px 18px;
-  margin-bottom: 1.2rem;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
-  color: white;
-  outline: none;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-}
-
-.auth-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
-}
-
-/* =========================================
-   10. ANIMATIONS
-   ========================================= */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-
-
-
-
 
 
 

@@ -141,45 +141,54 @@ if (type === "STOP") {
 
       <div className="layout-body">
         {/* 2. LEFT SIDEBAR: HISTORY */}
-       
-<div className="history-list">
-  {sessionHistory.map((item, index) => (
-    <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
-      <div className="card-header">
-        <span className="status-dot"></span>
-        <span className="card-status">{item.status || "Completed"}</span>
-        <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
-      </div>
-      <p className="card-advice-preview">{item.advice?.substring(0, 45)}...</p>
-      <span className="card-date">{new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-    </div>
-  ))}
-</div>
+        <div className="history-list">
+          {sessionHistory.map((item, index) => (
+            <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
+              <div className="card-header">
+                <span className="status-dot"></span>
+                <span className="card-status">{item.status || "Completed"}</span>
+                <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
+              </div>
+              {/* Shortened preview for cleaner look */}
+              <span className="card-date">{new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+          ))}
+        </div>
 
-        {/* 3. CENTER COLUMN: CONTROLS & CHART */}
+        {/* 3. CENTER COLUMN: MAIN CONTENT */}
         <main className="main-center">
-          <div className="controls-wrapper">
+          
+          {/* Scrollable Area (Chart + Insights) */}
+          <div className="content-scroll-area">
+            
+            {/* Chart is always visible at top */}
+            <div className="chart-wrapper">
+              <FocusChart history={sessionHistory} />
+            </div>
+
+            {/* AI Insights (Appears in middle now) */}
+            {sessionData ? (
+              <div className="insight-card-middle">
+                <h3>AI Analysis Report</h3>
+                <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
+                <button className="ctrl-btn switch" style={{ marginTop: '20px', width: 'auto' }} onClick={downloadPDF}>
+                  Download PDF Report
+                </button>
+              </div>
+            ) : (
+              <div className="welcome-message">
+                <h1>Hello, {user.name.split(' ')[0]}</h1>
+                <p>Ready to analyze your flow? Press <b>Start</b> below.</p>
+              </div>
+            )}
+          </div>
+
+          {/* 4. BOTTOM BAR: CONTROLS (Fixed) */}
+          <div className="bottom-input-area">
             <Controls onEvent={handleEvent} />
           </div>
-          <div className="chart-wrapper" >
-            <FocusChart history={sessionHistory} />
-          </div>
-        </main>
 
-        {/* 4. RIGHT SIDEBAR: ADVICE & RESULTS */}
-        <aside className="sidebar-right">
-          <h3>AI Insights</h3>
-          {sessionData ? (
-            <div id="report-content">
-              <SessionResult key={sessionData.timestamp} sessionData={sessionData} setAdvice={setAdvice} />
-              <button className="ctrl-btn switch" style={{ marginTop: '30px', width: '100%' }} onClick={downloadPDF}>
-                Download PDF
-              </button>
-            </div>
-          ) : (
-            <p className="empty-state">Start a session to receive AI coaching.</p>
-          )}
-        </aside>
+        </main>
       </div>
     </div>
   );
