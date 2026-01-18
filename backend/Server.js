@@ -1,4 +1,9 @@
-// Server.js
+
+// Add this LINE at the VERY TOP of your server.js file
+import "./keepAlive.js"; 
+
+;
+// ... rest of your code// Server.js
 import dotenv from 'dotenv';
 dotenv.config(); // load .env immediately
 
