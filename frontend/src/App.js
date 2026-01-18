@@ -83,31 +83,55 @@ if (type === "STOP") {
       const durationMin = (end - startTime) / 60000;
       const activeRatio = activeTime / ((end - startTime) / 1000);
       
-      // 1. MATH LOGIC (The Source of Truth)
-      // If active > 50%, it IS Focused. No guessing.
-      const isFocused = activeRatio >= 0.5;
-      const status = isFocused ? "Focused" : "Distracted";
-      const confidence = Math.round(activeRatio * 100);
+      // 1. Prepare data for ML
+      const sessionData = {
+        duration: durationMin,
+        switch_count: switchCount,
+        active_ratio: activeRatio,
+        switch_rate: switchCount / (durationMin || 1) // Avoid division by zero
+      };
 
-      // 2. Get Advice using your helper file
+      let status = "Processing...";
+      let confidence = 0;
       let finalAdvice = "";
+
       try {
-        // We pass the CORRECT status string and percentage
-        finalAdvice = await getAdvice(status, confidence);
+        // 2. CALL BACKEND (Which calls ML)
+        // We wait for the answer: 0 or 1
+        const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionData);
+        
+        const prediction = predRes.data.prediction; // This is 0 or 1
+        confidence = Math.round(predRes.data.confidence * 100);
+
+        // 3. SET STATUS BASED ON ML (CRITICAL FIX)
+        // Do NOT use activeRatio logic here. Trust the prediction.
+        status = (prediction === 1) ? "Focused" : "Distracted";
+
+        console.log("FRONTEND RECEIVED:", { prediction, status });
+
+        // 4. Get Advice based on that ML status
+        // Pass the ML status string to the advice engine
+        const adviceRes = await axios.post(`${API_BASE_URL}/api/advice`, {
+          concPercent: confidence,
+          status: status 
+        });
+        finalAdvice = adviceRes.data.advice;
         setAdvice(finalAdvice);
+
       } catch (err) {
-        console.error("Advice failed", err);
-        finalAdvice = "Stay focused and keep tracking.";
+        console.error("Prediction/Advice failed", err);
+        status = "Error";
+        finalAdvice = "Could not analyze session.";
       }
 
-      // 3. Save to History
+      // 5. Save to History
       const payload = {
         userId: user._id || user.id,
         duration: durationMin,
         switch_count: switchCount,
         active_ratio: activeRatio,
-        status: status,      // Math-verified status
-        advice: finalAdvice, // The advice we just got
+        status: status,    // Uses the ML status
+        advice: finalAdvice,
         timestamp: new Date().toISOString()
       };
 
@@ -116,7 +140,7 @@ if (type === "STOP") {
         setSessionData(res.data);
         setSessionHistory([res.data, ...sessionHistory]);
       } catch (err) {
-        console.error("Failed to save:", err);
+        console.error("Failed to save session:", err);
       }
       setStartTime(null);
     }

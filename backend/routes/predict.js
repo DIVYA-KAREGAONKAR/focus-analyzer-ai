@@ -1,4 +1,3 @@
-// backend/routes/predict.js
 import express from "express";
 import axios from "axios";
 import Prediction from "../models/Prediction.js";
@@ -7,46 +6,43 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const sessionFeatures = req.body; // contains active_ratio (e.g., 0.85)
+    const sessionFeatures = req.body;
 
-    // 1. Call Python AI (We still call it to get the 'confidence' metric)
+    // 1. Call Python ML Service
     const response = await axios.post("https://focus-analyzer-ai-3.onrender.com/predict", req.body, {
       headers: { "Content-Type": "application/json" }
     });
 
-    let confidence = Number(response.data.confidence);
+    // 2. RAW TRANSFER: Get exactly what ML sent (0 or 1)
+    // We do NOT change this value.
+    const mlPrediction = Number(response.data.prediction); 
+    const confidence = Number(response.data.confidence);
 
-    // 2. THE LOGIC FIX: Ignore the ML's 0/1. 
-    // We trust the active_ratio math more.
-    // If active_ratio > 0.5 (50%), we call it "Focused" (1). Otherwise "Distracted" (0).
-    const forcedPrediction = sessionFeatures.active_ratio >= 0.5 ? 1 : 0;
-
-    console.log("LOGIC OVERRIDE:", {
-      active_ratio: sessionFeatures.active_ratio,
-      status: forcedPrediction === 1 ? "Focused" : "Distracted"
+    console.log("ML DECISION:", {
+      SentToML: sessionFeatures,
+      ReceivedFromML: mlPrediction, // Should be 0 or 1
+      Status: mlPrediction === 1 ? "Focused" : "Distracted"
     });
 
-    // Save to DB
+    // 3. Save exactly what ML said
     const savedPrediction = new Prediction({
       duration: sessionFeatures.duration,
       switch_count: sessionFeatures.switch_count,
       switch_rate: sessionFeatures.switch_rate,
       active_ratio: sessionFeatures.active_ratio,
-      prediction: forcedPrediction, // Save our forced correct status
-      confidence,
+      prediction: mlPrediction, // <--- No math override here
+      confidence: confidence,
       createdAt: new Date()
     });
 
     await savedPrediction.save();
 
-    // Send correct data to frontend
-    res.json({ prediction: forcedPrediction, confidence });
+    // 4. Send exactly what ML said to Frontend
+    res.json({ prediction: mlPrediction, confidence });
 
   } catch (error) {
-    console.error(error);
-    // Even if ML fails, we can still return a basic status based on ratio
-    const fallbackStatus = req.body.active_ratio >= 0.5 ? 1 : 0;
-    res.json({ prediction: fallbackStatus, confidence: 0 });
+    console.error("ML Error:", error.message);
+    res.status(500).json({ error: "ML Connection Failed" });
   }
 });
 
