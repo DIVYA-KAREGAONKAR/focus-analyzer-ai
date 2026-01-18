@@ -3,46 +3,45 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
-// Safety Check
-if (!process.env.GEMINI_API_KEY) {
-  console.error("❌ ERROR: GEMINI_API_KEY is missing in .env");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// USE NEWER MODEL (Make sure you ran 'npm install @google/generative-ai@latest')
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Fallback function in case AI fails entirely
+const getFallbackAdvice = (status) => {
+  return status === "Focused" 
+    ? "Great momentum. Keep this flow state going." 
+    : "Distractions detected. Take a deep breath and reset.";
+};
 
 router.post("/", async (req, res) => {
   const { concPercent, status } = req.body;
-
-  const prompt = `
-    The user just finished a work session.
-    Status: ${status}
-    Focus Score: ${concPercent}%
-    
-    Task: Write exactly 2 short sentences.
-    1. Acknowledgment of their score.
-    2. One actionable tip for the next session.
-  `;
+  
+  // 1. Safety Check: If no API Key, return fallback immediately
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn("⚠️ No API Key found. Using fallback.");
+    return res.json({ advice: getFallbackAdvice(status) });
+  }
 
   try {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    
+    // 2. Use 'gemini-pro' (Most stable model)
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+    const prompt = `
+      Context: User was ${status} (Score: ${concPercent}%).
+      Task: Write 1 short, encouraging sentence of advice.
+    `;
+
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const adviceText = response.text();
     
-    console.log("✅ Advice Generated Successfully");
+    console.log("✅ AI Advice Generated");
     res.json({ advice: adviceText });
 
   } catch (err) {
-    console.error("❌ Gemini Error:", err.message);
-    
-    // FALLBACK: Return this string if AI fails. Prevents Frontend Crash.
-    const fallbackAdvice = status === "Focused" 
-      ? "Great job keeping your focus high! Take a short break to recharge." 
-      : "We detected some distractions. Try to close background tabs next time.";
-      
-    res.json({ advice: fallbackAdvice });
+    // 3. IF ERROR HAPPENS (like 404), RETURN FALLBACK
+    // This ensures the frontend NEVER crashes, even if Gemini is broken.
+    console.error("❌ Gemini Error (Using Fallback):", err.message);
+    res.json({ advice: getFallbackAdvice(status) });
   }
 });
 
