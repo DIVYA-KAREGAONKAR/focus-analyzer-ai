@@ -11,7 +11,7 @@ if (!process.env.GEMINI_API_KEY) {
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // 2. USE A VALID MODEL (gemini-1.5-flash is standard)
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 router.post("/", async (req, res) => {
   const { concPercent, status } = req.body;
