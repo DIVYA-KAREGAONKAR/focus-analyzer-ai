@@ -1,49 +1,44 @@
-/* Controls.css */
-/* Update Controls.css */
+.controls-wrapper {
+  width: 100%;
+  max-width: 560px;
+  background: var(--bg-surface);
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
 .btn-group {
   display: flex;
-  flex-wrap: wrap; /* Allows buttons to drop to a new line if the box is small */
-  gap: 12px;
-  width: 100%;
-  justify-content: space-between;
+  gap: 14px;
+  margin-top: 20px;
 }
 
 .ctrl-btn {
-  flex: 1 1 30%; /* Grows to fill space, but won't go below 30% width */
-  min-width: 80px; 
-  padding: 12px 10px;
-  font-size: 0.85rem;
-  text-align: center;
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ctrl-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .start {
-  background: rgba(74, 222, 128, 0.1);
-  color: var(--neon-green);
-  border: 1px solid rgba(74, 222, 128, 0.3);
-}
-
-.start:hover {
-  background: var(--neon-green);
-  color: var(--bg-dark);
-  box-shadow: 0 0 15px var(--neon-green);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
 }
 
 .switch {
-  background: rgba(96, 165, 250, 0.1);
-  color: var(--neon-blue);
-  border: 1px solid rgba(96, 165, 250, 0.3);
+  background: var(--bg-muted);
+  color: var(--primary);
 }
-
-.switch:active { transform: scale(0.95); }
 
 .stop {
-  background: rgba(248, 113, 113, 0.1);
-  color: var(--neon-red);
-  border: 1px solid rgba(248, 113, 113, 0.3);
-}
-
-.stop:hover {
-  background: var(--neon-red);
-  color: white;
-  box-shadow: 0 0 15px var(--neon-red);
+  background: #fee2e2;
+  color: #b91c1c;
 }

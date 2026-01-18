@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-
-
-
+import "../styles/Auth.css";
 // src/components/Auth.jsx
 import axios from 'axios';
 
