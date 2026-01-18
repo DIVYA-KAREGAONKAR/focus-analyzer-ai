@@ -12,6 +12,86 @@
   --radius-lg: 24px;
 }
 
+
+
+.processing-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh; /* Takes up most of the screen */
+  color: #4b5563;
+  text-align: center;
+}
+
+.processing-state h3 {
+  margin-top: 1.5rem;
+  font-size: 1.4rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+.processing-state p {
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6; /* Blue Color */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Ensure Bottom Controls stick to bottom */
+.bottom-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: white; /* Important so it doesn't overlap transparently */
+  border-top: 1px solid #f0f0f0;
+  z-index: 10;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
 body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; overflow: hidden; }
