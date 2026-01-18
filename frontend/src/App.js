@@ -157,73 +157,142 @@ if (type === "STOP") {
 
 // Inside the App component return:
 return (
-  <div className="chat-layout">
-    {/* 1. TOP NAVBAR - With Styled User Pill */}
-    <nav className="navbar">
-      <div className="nav-logo">Focus Analyzer AI</div>
-      
-      {/* Styled User Area */}
-      <div className="nav-user">
-        <span>{user.name}</span>
-        <button onClick={handleLogout} className="logout-link">Sign Out</button>
-      </div>
-    </nav>
+    <div className="chat-layout">
+      {/* 1. TOP NAVBAR */}
+      <nav className="navbar">
+        <div className="nav-logo">Focus Analyzer AI</div>
+        <div className="nav-user">
+          <span>{user?.name || "User"}</span>
+          <button onClick={handleLogout} className="logout-btn">Sign Out</button>
+        </div>
+      </nav>
 
-    <div className="layout-body">
-      {/* 2. LEFT SIDEBAR: Full Height & Wider */}
-      <div className="history-list">
-        <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
-        {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
+      <div className="layout-body">
         
-        {sessionHistory.map((item, index) => (
-          <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
-            <div style={{display:'flex', alignItems:'center'}}>
-              <span className="status-dot"></span>
-              <span className="card-status">{item.status || "Completed"}</span>
+        {/* 2. LEFT SIDEBAR (Fixed: Now includes Date & Advice Preview) */}
+        <div className="history-list">
+          <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
+          {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
+          
+          {sessionHistory.map((item, index) => (
+            <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
+              <div className="card-header">
+                <div style={{display:'flex', alignItems:'center'}}>
+                  <span className="status-dot"></span>
+                  <span className="card-status">{item.status || "Completed"}</span>
+                </div>
+                <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
+              </div>
+              <div className="card-meta">
+                {new Date(item.timestamp).toLocaleDateString('en-US', { 
+                  weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                })}
+              </div>
+              {item.advice && (
+                <p className="card-advice-preview">
+                  {item.advice.replace(/\*\*/g, '').substring(0, 60)}...
+                </p>
+              )}
             </div>
-            <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
+          ))}
+        </div>
+
+        {/* 3. MAIN CENTER AREA */}
+        <main className="main-center">
+          
+          {/* CONTENT AREA (Scrollable) */}
+          <div className="content-scroll-area">
+            
+            {/* STATE 1: PROCESSING (Loading Spinner) */}
+            {isProcessing && (
+              <div className="processing-state">
+                <div className="spinner"></div>
+                <h3>Analyzing Neural Flow...</h3>
+                <p>Consulting AI Model & Generating Advice</p>
+              </div>
+            )}
+
+            {/* STATE 2: SHOW RESULT */}
+            {!isProcessing && sessionData && (
+              <div className="result-wrapper">
+                <SessionResult sessionData={sessionData} />
+                <button onClick={downloadPDF} className="download-btn" style={{marginTop: '20px'}}>
+                  Download PDF Report
+                </button>
+              </div>
+            )}
+
+            {/* STATE 3: ACTIVE TIMER */}
+            {!isProcessing && !sessionData && startTime && (
+               <div className="timer-display">
+                  <div className="timer-circle">
+                    <h1>{new Date(Date.now() - startTime).toISOString().substr(11, 8)}</h1>
+                    <p>Focus Session Active</p>
+                    <div className="pulse-ring"></div>
+                  </div>
+               </div>
+            )}
+
+            {/* STATE 4: START SCREEN (Charts) */}
+            {!isProcessing && !sessionData && !startTime && (
+               <div className="welcome-screen">
+                 <div className="chart-wrapper">
+                   <FocusChart history={sessionHistory} />
+                 </div>
+               </div>
+            )}
           </div>
-        ))}
+
+          {/* 4. BOTTOM CONTROLS (RESTORED!) */}
+          <div className="bottom-input-area">
+            <div className="controls-card">
+              
+              {/* SCENARIO A: Session Not Started (Show START) */}
+              {!startTime && !isProcessing && (
+                <button 
+                  className="ctrl-btn start-btn" 
+                  onClick={() => {
+                    setSessionData(null); // Clear previous result
+                    handleEvent("START");
+                  }}
+                >
+                  {sessionData ? "Start New Session" : "Start Focus Session"}
+                </button>
+              )}
+
+              {/* SCENARIO B: Session Running (Show SWITCH / STOP) */}
+              {startTime && !isProcessing && (
+                <div className="btn-group">
+                  <button 
+                    className="ctrl-btn switch-btn" 
+                    onClick={() => handleEvent("SWITCH")}
+                  >
+                    Switch Task ({switchCount})
+                  </button>
+                  
+                  <button 
+                    className="ctrl-btn stop-btn" 
+                    onClick={() => handleEvent("STOP")}
+                  >
+                    Stop Session
+                  </button>
+                </div>
+              )}
+
+              {/* SCENARIO C: Processing (Disable Buttons) */}
+              {isProcessing && (
+                <button className="ctrl-btn" disabled style={{opacity: 0.7, cursor: 'not-allowed'}}>
+                  Processing...
+                </button>
+              )}
+
+            </div>
+          </div>
+
+        </main>
       </div>
-
-      {/* 3. CENTER COLUMN: MAIN CONTENT */}
-     <main className="main-center">
-        {/* CASE 1: LOADING */}
-        {isProcessing && (
-          <div className="processing-state">
-            <div className="spinner"></div>
-            <h3>Analyzing Neural Flow...</h3>
-            <p>Consulting AI Model & Generating Advice</p>
-          </div>
-        )}
-
-        {/* CASE 2: SHOW RESULT (Only if not processing AND data exists) */}
-        {!isProcessing && sessionData && (
-          <SessionResult sessionData={sessionData} />
-        )}
-
-        {/* CASE 3: ACTIVE TIMER */}
-        {!isProcessing && !sessionData && startTime && (
-           /* ... Your existing Timer Component ... */
-           <div className="timer-display">
-              {/* (Keep your existing timer code here) */}
-              <h1>{new Date(Date.now() - startTime).toISOString().substr(11, 8)}</h1>
-              {/* ... */}
-           </div>
-        )}
-
-        {/* CASE 4: START SCREEN (Default) */}
-        {!isProcessing && !sessionData && !startTime && (
-           /* ... Your existing FocusChart or Welcome Message ... */
-           <div className="welcome-screen">
-             <FocusChart history={sessionHistory} />
-             {/* ... */}
-           </div>
-        )}
-      </main>
     </div>
-  </div>
-);
+  );
 }
 
 export default App;
