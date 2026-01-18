@@ -23,7 +23,7 @@ router.post("/", async (req, res) => {
     
     // ✅ CHANGED: Switched to the modern, supported model
     // This works because you updated your package.json to version 0.24.1+
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `
       Context: User was ${status} (Score: ${concPercent}%).
