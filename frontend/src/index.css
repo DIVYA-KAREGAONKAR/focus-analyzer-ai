@@ -18,7 +18,12 @@ body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; 
 
 /* --- LAYOUT --- */
 .chat-layout { display: flex; flex-direction: column; height: 100vh; }
-.layout-body { display: flex; flex: 1; overflow: hidden; position: relative; }
+.layout-body {
+  display: flex;
+  flex: 1;         /* Fills the space below navbar */
+  height: 100%;    /* Passes the height down to the sidebar */
+  overflow: hidden; 
+}
 
 /* --- NAVBAR --- */
 .navbar {
@@ -48,8 +53,13 @@ body { background-color: var(--bg-app); color: var(--text-main); height: 100vh; 
 .history-list {
   width: var(--sidebar-width);
   background: var(--bg-sidebar);
-  /* Force height to fill screen minus navbar */
-  height: calc(100vh - var(--navbar-height)); 
+  
+  /* --- THE IMPORTANT PART --- */
+  height: 100%;       /* Force it to fill the parent container */
+  min-height: 100%;   /* Backup to ensure it never shrinks */
+  flex-grow: 1;       /* If parent is flex, this makes it grow */
+  /* -------------------------- */
+  
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
