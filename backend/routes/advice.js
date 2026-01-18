@@ -5,27 +5,38 @@ const router = express.Router();
 
 // Configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// Use Gemini 3 Flash for speed and reliable 2026 support
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-// backend/routes/advice.js
-// backend/routes/advice.js
-// backend/routes/advice.js
+// Use Gemini 1.5 Flash for speed and reliability (Adjust model name as needed for your API)
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 router.post("/", async (req, res) => {
   const { concPercent, status } = req.body; // status is "Focused" or "Distracted"
 
-  // We explicitly label the percentage so the AI doesn't guess
-  // Inside your backend routes/advice.js (Logic update)
-const prompt = `The user was ${status} with an intensity of ${concPercent}%. 
-Provide a 3-sentence professional coaching insight. 
-Sentence 1: Analyze the current state. 
-Sentence 2: Explain the psychological impact of this focus level. 
-Sentence 3: Give a specific, high-impact action step to improve flow.`;
+  // --- NEW DETAILED PROMPT ---
+  const prompt = `
+    You are an elite productivity and neuro-performance coach. 
+    The user is currently in a "${status}" state with a focus intensity of ${concPercent}%.
+
+    Please provide a comprehensive, detailed analysis in the following format (do not use markdown bolding like ** text ** just use plain text):
+
+    1. Deep Dive Analysis: Explain exactly what a ${concPercent}% focus level means for their brain right now. Is it deep work, shallow work, or fragmented attention?
+    2. Cognitive Impact: Describe the psychological effect of this state. How does it affect their creativity, mental fatigue, and decision-making capability?
+    3. Immediate Strategy: Provide a specific, actionable technique to either maintain this high level or recover from this distraction (e.g., Pomodoro adjustment, box breathing, sensory deprivation).
+    4. Long-term Optimization: Give one tip on how to train the brain to improve this specific metric over time.
+
+    Keep the tone professional, encouraging, and scientifically grounded.
+  `;
 
   try {
     const result = await model.generateContent(prompt);
-    res.json({ advice: result.response.text() });
+    const adviceText = result.response.text();
+    
+    // Clean up any markdown symbols if Gemini adds them (optional safety)
+    const cleanAdvice = adviceText.replace(/\*\*/g, "").replace(/\*/g, "-");
+
+    res.json({ advice: cleanAdvice });
   } catch (err) {
-    res.json({ advice: "Stay centered and keep working!" });
+    console.error("AI Generation Error:", err);
+    res.json({ advice: "System is analyzing your complex flow state. Please stay centered and continue working while we recalibrate." });
   }
 });
 
