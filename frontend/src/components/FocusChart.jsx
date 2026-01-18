@@ -37,6 +37,18 @@ const FocusChart = ({ history }) => {
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    
+    // --- THIS IS THE FIX ---
+    layout: {
+      padding: {
+        bottom: 30,  // Adds 30px of "safe zone" at the bottom for text
+        left: 10,
+        right: 10,
+        top: 10
+      }
+    },
+    // -----------------------
+    
     animation: {
       duration: 2000,
       easing: 'easeOutQuart'
@@ -46,8 +58,8 @@ const FocusChart = ({ history }) => {
       tooltip: { 
         backgroundColor: '#1f1f1f', 
         padding: 12,
-        titleFont: { size: 14 },
-        bodyFont: { size: 14 },
+        titleFont: { size: 13 },
+        bodyFont: { size: 13 },
         displayColors: false,
         callbacks: {
           label: (context) => `Intensity: ${context.parsed.y}%`
@@ -59,23 +71,20 @@ const FocusChart = ({ history }) => {
         min: 0, 
         max: 100,
         grid: { color: '#f0f0f0', borderDash: [5, 5] },
-        ticks: { color: '#9ca3af', font: { size: 11 } }
+        ticks: { color: '#9ca3af', font: { size: 11 }, padding: 10 }
       },
       x: { 
         grid: { display: false },
-        ticks: { color: '#6b7280', font: { size: 11, weight: 'bold' } }
+        ticks: { 
+          color: '#6b7280', 
+          font: { size: 11, weight: '600' },
+          maxRotation: 0, // Keeps text flat
+          autoSkip: true, // Prevents overlapping
+          padding: 15     // Pushes text further down from the line
+        }
       }
     }
   };
-
-  return (
-    <div style={{ height: '100%', width: '100%' }}>
-      <div style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#6b7280', fontWeight: '600' }}>
-        Focus Timeline (Today)
-      </div>
-      <Line data={data} options={options} />
-    </div>
-  );
 };
 
 export default FocusChart;
