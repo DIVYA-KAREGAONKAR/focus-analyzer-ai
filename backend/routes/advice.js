@@ -3,21 +3,18 @@ import axios from "axios";
 
 const router = express.Router();
 
-// 1. BEAUTIFUL FALLBACKS (So the UI always looks good)
+// 1. UPGRADED FALLBACKS (Detailed & Impactful)
+// Used only if Google AI fails.
 const getFallbackAdvice = (status) => {
-  const focusedTips = [
-    "Excellent momentum. Your focus intensity is high—keep this flow state going.",
-    "Great work! You're in the zone. maximize this time for complex tasks.",
-    "Solid performance. Maintain this rhythm to close out your goals."
-  ];
-  const distractedTips = [
-    "Distractions detected. Try the '2-Minute Rule': if it takes <2 mins, do it now, else schedule it.",
-    "Focus slipped. Take a deep breath, close one tab, and restart your timer.",
-    "High switching detected. Try single-tasking for just the next 10 minutes."
-  ];
-  
-  const tips = status === "Focused" ? focusedTips : distractedTips;
-  return tips[Math.floor(Math.random() * tips.length)];
+  if (status === "Focused") {
+    return `Analysis: You achieved a high flow state, indicating strong neural synchronization.
+Impact: This level of focus strengthens myelination in the brain, making future deep work easier.
+Action: To sustain this, take a 5-minute non-digital break (walk or stretch) before your next sprint.`;
+  } else {
+    return `Analysis: High task-switching detected. This "context switching" creates attention residue, lowering IQ effectively by 10 points.
+Impact: You are expending energy on switching rather than doing, leading to faster burnout.
+Action: Use the "Single-Tasking Rule" for the next 20 minutes: Close all tabs except the one you are working on.`;
+  }
 };
 
 router.post("/", async (req, res) => {
@@ -31,37 +28,42 @@ router.post("/", async (req, res) => {
 
   try {
     // ---------------------------------------------------------
-    // STEP 1: ASK GOOGLE "WHAT MODELS ARE AVAILABLE?"
+    // STEP 1: AUTO-DISCOVER MODEL (Keep this, it works!)
     // ---------------------------------------------------------
-    console.log("🔍 Auto-discovering valid AI models...");
     const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`;
-    
     const listResponse = await axios.get(listUrl);
     
-    // Find a model that supports 'generateContent'
     const validModel = listResponse.data?.models?.find(m => 
       m.supportedGenerationMethods?.includes("generateContent") &&
       (m.name.includes("gemini") || m.name.includes("pro") || m.name.includes("flash"))
     );
 
-    if (!validModel) {
-      throw new Error("No valid Gemini models found for this API key.");
-    }
-
-    const modelName = validModel.name.replace("models/", ""); // e.g., "gemini-1.5-flash"
-    console.log(`✅ Found valid model: ${modelName}`);
+    if (!validModel) throw new Error("No valid Gemini models found.");
+    const modelName = validModel.name.replace("models/", "");
 
     // ---------------------------------------------------------
-    // STEP 2: USE THAT EXACT MODEL
+    // STEP 2: THE NEW "IMPACTFUL" PROMPT
     // ---------------------------------------------------------
     const genUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     
+    // We ask for a structured, psychological breakdown
+    const promptText = `
+      Act as an elite Cognitive Science Performance Coach.
+      User Session Data:
+      - Status: ${status}
+      - Focus Intensity: ${concPercent}%
+      
+      Task: Write a 3-part analysis (strict format, no bolding/markdown, just text lines):
+      
+      1. Observation: Briefly analyze their cognitive state based on the score.
+      2. The Science: Explain the mental impact of this state (e.g., dopamine, flow, cortisol, attention residue).
+      3. Protocol: Give one specific, high-leverage action to execute immediately.
+      
+      Keep the tone professional, direct, and empowering.
+    `;
+
     const payload = {
-      contents: [{
-        parts: [{
-          text: `User status: ${status} (${concPercent}%). Write 1 short, encouraging sentence of advice.`
-        }]
-      }]
+      contents: [{ parts: [{ text: promptText }] }]
     };
 
     const response = await axios.post(genUrl, payload, {
@@ -71,17 +73,14 @@ router.post("/", async (req, res) => {
     const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (adviceText) {
-      console.log("✅ AI Advice Generated Successfully!");
+      console.log("✅ AI Advice Generated (Detailed Mode)");
       res.json({ advice: adviceText });
     } else {
-      throw new Error("Empty response from AI");
+      throw new Error("Empty response");
     }
 
   } catch (err) {
-    // LOG THE REAL REASON
-    console.error("❌ AI FAILED:", err.response?.data?.error?.message || err.message);
-    
-    // RETURN FALLBACK (User sees a working app)
+    console.error("❌ AI FAILED:", err.message);
     res.json({ advice: getFallbackAdvice(status) });
   }
 });
