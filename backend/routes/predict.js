@@ -5,16 +5,21 @@ import Prediction from "../models/Prediction.js";
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  // 1. Log incoming data (Helps debug if you see a 500 error)
-  console.log("📥 Sending to ML:", req.body);
+  console.log("📥 Backend Received:", req.body);
   
-  const sessionFeatures = req.body;
+  const { duration, switch_count, active_ratio } = req.body;
+
+  // 1. VALIDATION: Check for bad data (Fixes 500 Crash)
+  if (duration === 0 || duration === null || isNaN(duration)) {
+    console.error("⛔ Invalid Duration (0 or NaN). Rejecting.");
+    return res.status(400).json({ error: "Session too short. Please analyze a longer session." });
+  }
 
   try {
-    // 2. ONE SHOT CALL - No retries, no waiting.
-    // We give the ML model 60 seconds to respond.
+    // 2. Call ML (Timeout 60s)
+    console.log("📡 Calling ML Service...");
     const response = await axios.post("https://focus-analyzer-ai-3.onrender.com/predict", req.body, {
-      timeout: 60000 // 60 seconds
+      timeout: 60000 
     });
     
     const mlPrediction = Number(response.data.prediction);
@@ -22,9 +27,9 @@ router.post("/", async (req, res) => {
 
     console.log(`✅ ML Success: ${mlPrediction === 1 ? "Focused" : "Distracted"}`);
 
-    // 3. Save REAL result to DB
+    // 3. Save & Return
     const savedPrediction = new Prediction({
-      ...sessionFeatures,
+      duration, switch_count, active_ratio,
       prediction: mlPrediction,
       confidence: confidence,
       isFallback: false,
@@ -32,15 +37,11 @@ router.post("/", async (req, res) => {
     });
 
     await savedPrediction.save();
-
-    // 4. Return result
     res.json({ prediction: mlPrediction, confidence });
 
   } catch (error) {
-    // If it fails, we show the REAL error.
     console.error("⛔ ML ERROR:", error.message);
-    
-    // We return a 500 status so you know exactly when it fails.
+    // Return 500 with details
     res.status(500).json({ 
       error: "ML Service Failed", 
       details: error.message 

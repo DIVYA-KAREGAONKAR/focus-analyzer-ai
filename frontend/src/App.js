@@ -65,7 +65,9 @@ const [isProcessing, setIsProcessing] = useState(false);
   };
 
   const handleEvent = async (type) => {
+    // 1. START EVENT (Restored Console Log)
     if (type === "START") {
+      console.log("🟢 Session STARTED"); // You will see this in Console now
       if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
       }
@@ -74,32 +76,51 @@ const [isProcessing, setIsProcessing] = useState(false);
       setActiveTime(0);
       setSessionData(null);
       setAdvice("");
+      setIsProcessing(false);
     }
 
-    if (type === "SWITCH") setSwitchCount((prev) => prev + 1);
+    // 2. SWITCH EVENT (Restored Console Log)
+    if (type === "SWITCH") {
+      console.log("twisted_rightwards_arrows Task SWITCHED"); // You will see this in Console now
+      setSwitchCount((prev) => prev + 1);
+    }
 
-    // App.js - Updated handleEvent "STOP"
-if (type === "STOP") {
+    // 3. STOP EVENT (Fixes the 500 Crash)
+    if (type === "STOP") {
       const end = Date.now();
-      setStartTime(null); // Stop the timer immediately
-      setIsProcessing(true); // <--- SHOW LOADING SCREEN
+      console.log("🔴 Session STOPPED. Analyzing...");
       
-      const durationMin = (end - startTime) / 60000;
-      const activeRatio = activeTime / ((end - startTime) / 1000);
+      setStartTime(null);
+      setIsProcessing(true); // Show Loading Screen
       
+      // FIX: Prevent Division by Zero if session is too short (< 1s)
+      const rawDurationMs = end - startTime;
+      const safeDurationMs = Math.max(rawDurationMs, 1000); // Minimum 1 second
+      const durationMin = safeDurationMs / 60000;
+      
+      const activeRatio = activeTime / (safeDurationMs / 1000);
+      
+      // Calculate switch rate safely
+      const safeSwitchRate = switchCount / (durationMin || 1);
+
       const sessionDataPayload = {
         duration: durationMin,
         switch_count: switchCount,
-        active_ratio: activeRatio,
-        switch_rate: switchCount / (durationMin || 1)
+        active_ratio: activeRatio || 0, 
+        switch_rate: safeSwitchRate
       };
 
       try {
-        // 1. Get Prediction
+        console.log("📤 Sending Payload to ML:", sessionDataPayload);
+
+        // 1. Get Prediction (Wait for ML)
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionDataPayload);
+        
         const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
         const status = (prediction === 1) ? "Focused" : "Distracted";
+
+        console.log(`✅ ML Status: ${status}`);
 
         // 2. Get Advice
         const adviceRes = await axios.post(`${API_BASE_URL}/api/advice`, {
@@ -111,7 +132,7 @@ if (type === "STOP") {
 
         // 3. Save to History
         const saveRes = await axios.post(`${API_BASE_URL}/api/history`, {
-           userId: user.id || user._id, // Ensure ID is sent
+           userId: user.id || user._id,
            duration: durationMin,
            switch_count: switchCount,
            active_ratio: activeRatio,
@@ -119,15 +140,15 @@ if (type === "STOP") {
            advice: finalAdvice
         });
 
-        // 4. UPDATE UI WITH RESULT
+        // 4. Update UI
         setSessionData(saveRes.data);
         setSessionHistory([saveRes.data, ...sessionHistory]);
 
       } catch (err) {
-        console.error("Process Failed:", err);
+        console.error("❌ Process Failed:", err);
         setAdvice("Could not analyze session. Please check connection.");
       } finally {
-        setIsProcessing(false); // <--- HIDE LOADING SCREEN (Reveal Result)
+        setIsProcessing(false); // Hide Loading Screen
       }
     }
   };
