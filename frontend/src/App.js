@@ -6,6 +6,7 @@ import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
 import "./index.css"
+import { getAdvice } from "./api/advice"; // <--- Add this import
 // Replace with your actual backend URL (e.g., your Render.com URL)
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
@@ -78,33 +79,47 @@ function App() {
 
     // App.js - Updated handleEvent "STOP"
 if (type === "STOP") {
-  const end = Date.now();
-  const durationMin = (end - startTime) / 60000;
-  const activeRatio = activeTime / ((end - startTime) / 1000);
+      const end = Date.now();
+      const durationMin = (end - startTime) / 60000;
+      const activeRatio = activeTime / ((end - startTime) / 1000);
+      
+      // 1. MATH LOGIC (The Source of Truth)
+      // If active > 50%, it IS Focused. No guessing.
+      const isFocused = activeRatio >= 0.5;
+      const status = isFocused ? "Focused" : "Distracted";
+      const confidence = Math.round(activeRatio * 100);
 
-  // 1. First, get the AI Prediction and Advice
-  // Note: You may need to lift the prediction logic from SessionResult to here 
-  // to ensure advice is ready before the POST request.
-  
-  const payload = {
-    userId: user.id, 
-    duration: durationMin,
-    switch_count: switchCount,
-    active_ratio: activeRatio,
-    status: activeRatio > 0.7 ? "Focused" : "Distracted", // Temporary logic
-    advice: advice, // Use the advice state
-    timestamp: new Date().toISOString()
-  };
+      // 2. Get Advice using your helper file
+      let finalAdvice = "";
+      try {
+        // We pass the CORRECT status string and percentage
+        finalAdvice = await getAdvice(status, confidence);
+        setAdvice(finalAdvice);
+      } catch (err) {
+        console.error("Advice failed", err);
+        finalAdvice = "Stay focused and keep tracking.";
+      }
 
-  try {
-    const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
-    setSessionData(res.data);
-    setSessionHistory([res.data, ...sessionHistory]);
-  } catch (err) {
-    console.error("Failed to save session:", err);
-  }
-  setStartTime(null);
-}
+      // 3. Save to History
+      const payload = {
+        userId: user._id || user.id,
+        duration: durationMin,
+        switch_count: switchCount,
+        active_ratio: activeRatio,
+        status: status,      // Math-verified status
+        advice: finalAdvice, // The advice we just got
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
+        setSessionData(res.data);
+        setSessionHistory([res.data, ...sessionHistory]);
+      } catch (err) {
+        console.error("Failed to save:", err);
+      }
+      setStartTime(null);
+    }
   };
 
   const downloadPDF = () => {

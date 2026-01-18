@@ -1,15 +1,13 @@
 // src/api/advice.js
 import axios from "axios";
 
-export const getAdvice = async (prediction, confidence) => {
-  // Logic to determine status before sending to AI
-  const status = prediction === 1 ? "Focused" : "Distracted";
-  const concPercent = Math.round(confidence * 100);
-
+// CHANGED: Now accepts 'status' (string) and 'concPercent' (number) directly.
+// This prevents the file from guessing wrong based on 0 or 1.
+export const getAdvice = async (status, concPercent) => {
   try {
     const response = await axios.post(
       "https://focus-analyzer-ai-4.onrender.com/api/advice", 
-      { concPercent, status }, // Send both!
+      { concPercent, status }, 
       {
         headers: {
           "Content-Type": "application/json",
@@ -20,6 +18,6 @@ export const getAdvice = async (prediction, confidence) => {
     return response.data.advice;
   } catch (error) {
     console.error("Error fetching advice:", error);
-    return "Keep working on your goals!";
+    return "Great effort! Stay centered and keep working on your goals.";
   }
 };
