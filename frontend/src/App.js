@@ -83,65 +83,49 @@ if (type === "STOP") {
       const durationMin = (end - startTime) / 60000;
       const activeRatio = activeTime / ((end - startTime) / 1000);
       
-      // 1. Prepare data for ML
       const sessionData = {
         duration: durationMin,
         switch_count: switchCount,
         active_ratio: activeRatio,
-        switch_rate: switchCount / (durationMin || 1) // Avoid division by zero
+        switch_rate: switchCount / (durationMin || 1)
       };
 
-      let status = "Processing...";
-      let confidence = 0;
-      let finalAdvice = "";
-
+      // 1. ASK ML FOR STATUS
       try {
-        // 2. CALL BACKEND (Which calls ML)
-        // We wait for the answer: 0 or 1
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionData);
         
-        const prediction = predRes.data.prediction; // This is 0 or 1
-        confidence = Math.round(predRes.data.confidence * 100);
+        const prediction = predRes.data.prediction; // 0 or 1
+        const confidence = Math.round(predRes.data.confidence * 100);
+        
+        // 2. DETERMINE STATUS STRING
+        const status = (prediction === 1) ? "Focused" : "Distracted";
+        
+        console.log(`📡 Frontend Status: ${status} (ML: ${prediction})`);
 
-        // 3. SET STATUS BASED ON ML (CRITICAL FIX)
-        // Do NOT use activeRatio logic here. Trust the prediction.
-        status = (prediction === 1) ? "Focused" : "Distracted";
-
-        console.log("FRONTEND RECEIVED:", { prediction, status });
-
-        // 4. Get Advice based on that ML status
-        // Pass the ML status string to the advice engine
+        // 3. ASK FOR ADVICE (Passing the correct status)
         const adviceRes = await axios.post(`${API_BASE_URL}/api/advice`, {
           concPercent: confidence,
           status: status 
         });
-        finalAdvice = adviceRes.data.advice;
-        setAdvice(finalAdvice);
+        
+        const finalAdvice = adviceRes.data.advice;
+        setAdvice(finalAdvice); // Update UI
+        
+        // 4. SAVE TO DB
+        await axios.post(`${API_BASE_URL}/api/history`, {
+           userId: user.id,
+           duration: durationMin,
+           switch_count: switchCount,
+           active_ratio: activeRatio,
+           status: status,
+           advice: finalAdvice
+        });
 
       } catch (err) {
-        console.error("Prediction/Advice failed", err);
-        status = "Error";
-        finalAdvice = "Could not analyze session.";
+        console.error("Process Failed:", err);
+        setAdvice("System could not analyze session.");
       }
-
-      // 5. Save to History
-      const payload = {
-        userId: user._id || user.id,
-        duration: durationMin,
-        switch_count: switchCount,
-        active_ratio: activeRatio,
-        status: status,    // Uses the ML status
-        advice: finalAdvice,
-        timestamp: new Date().toISOString()
-      };
-
-      try {
-        const res = await axios.post(`${API_BASE_URL}/api/history`, payload);
-        setSessionData(res.data);
-        setSessionHistory([res.data, ...sessionHistory]);
-      } catch (err) {
-        console.error("Failed to save session:", err);
-      }
+      
       setStartTime(null);
     }
   };
