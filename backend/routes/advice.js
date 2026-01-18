@@ -1,49 +1,66 @@
 import express from "express";
-import axios from "axios"; // Using standard HTTP instead of Google library
+import axios from "axios";
 
 const router = express.Router();
+
+// Fallback message if ALL AI models fail
+const getFallbackAdvice = (status) => {
+  return status === "Focused" 
+    ? "Excellent focus. Maintain this rhythm." 
+    : "Distractions detected. Try deep breathing to reset.";
+};
 
 router.post("/", async (req, res) => {
   const { concPercent, status } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
-  // 1. Check if Key exists in Environment
   if (!apiKey) {
-    console.error("❌ ERROR: GEMINI_API_KEY is missing in Render Environment Variables.");
-    return res.json({ advice: "Analysis saved. (API Key missing)" });
+    console.warn("⚠️ No API Key found.");
+    return res.json({ advice: getFallbackAdvice(status) });
   }
 
-  try {
-    // 2. DIRECT HTTP CALL (Bypasses the "Old Library" issue)
-    // We manually type the URL for Gemini 1.5 Flash
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-    
-    const payload = {
-      contents: [{
-        parts: [{
-          text: `The user was ${status} (Focus Score: ${concPercent}%). Give 1 short sentence of advice.`
+  // LIST OF MODELS TO TRY (In order of preference)
+  // If 1.5 Flash fails, it immediately tries gemini-pro
+  const modelsToTry = [
+    "gemini-1.5-flash", 
+    "gemini-pro", 
+    "gemini-1.0-pro"
+  ];
+
+  for (const modelName of modelsToTry) {
+    try {
+      console.log(`🔄 Trying AI Model: ${modelName}...`);
+      
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      
+      const payload = {
+        contents: [{
+          parts: [{
+            text: `The user was ${status} (Focus Score: ${concPercent}%). Give 1 short sentence of advice.`
+          }]
         }]
-      }]
-    };
+      };
 
-    // 3. Send Request
-    const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
+      const response = await axios.post(url, payload, {
+        headers: { "Content-Type": "application/json" }
+      });
 
-    // 4. Extract Answer
-    const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
-    console.log("✅ AI Advice Success (Via Raw HTTP)");
-    res.json({ advice: adviceText || "Keep up the good work!" });
+      const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (adviceText) {
+        console.log(`✅ SUCCESS with ${modelName}!`);
+        return res.json({ advice: adviceText });
+      }
 
-  } catch (err) {
-    // Detailed Error Logging
-    console.error("❌ API ERROR:", err.response?.data?.error?.message || err.message);
-    
-    // Fallback so app doesn't crash
-    res.json({ advice: status === "Focused" ? "Great focus! Keep it up." : "Distractions detected. Refocus." });
+    } catch (err) {
+      console.warn(`❌ Failed with ${modelName}:`, err.response?.data?.error?.message || err.message);
+      // Loop continues to the next model...
+    }
   }
+
+  // If the loop finishes and nothing worked:
+  console.error("❌ ALL Models failed.");
+  res.json({ advice: getFallbackAdvice(status) });
 });
 
 export default router;
