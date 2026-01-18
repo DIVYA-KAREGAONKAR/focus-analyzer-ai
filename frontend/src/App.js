@@ -161,7 +161,7 @@ if (type === "STOP") {
           <div className="controls-wrapper">
             <Controls onEvent={handleEvent} />
           </div>
-          <div className="chart-wrapper" style={{ width: '100%', maxWidth: '800px' }}>
+          <div className="chart-wrapper" >
             <FocusChart history={sessionHistory} />
           </div>
         </main>
