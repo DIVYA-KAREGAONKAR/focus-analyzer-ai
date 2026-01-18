@@ -1,4 +1,4 @@
-import "../styles/Controls.css";
+
 
 function Controls({ onEvent }) {
   return (

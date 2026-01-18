@@ -5,7 +5,7 @@ import Controls from "./components/Controls";
 import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
-
+import "./index.css"
 // Replace with your actual backend URL (e.g., your Render.com URL)
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 

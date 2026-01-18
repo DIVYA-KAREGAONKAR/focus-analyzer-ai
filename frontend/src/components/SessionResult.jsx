@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPrediction } from "../api/predict";
 import { getAdvice } from "../api/advice";
-import "../styles/SessionResults.css";
+
 
 function SessionResult({ sessionData, setAdvice }) {
   const [result, setResult] = useState(null);
