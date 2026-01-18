@@ -86,65 +86,47 @@ const [isProcessing, setIsProcessing] = useState(false);
     }
 
     // 3. STOP EVENT (Fixes the 500 Crash)
-    if (type === "STOP") {
+   if (type === "STOP") {
       const end = Date.now();
       console.log("🔴 Session STOPPED. Analyzing...");
       
       setStartTime(null);
-      setIsProcessing(true); // Show Loading Screen
+      setIsProcessing(true); 
       
-      // FIX: Prevent Division by Zero if session is too short (< 1s)
       const rawDurationMs = end - startTime;
-      const safeDurationMs = Math.max(rawDurationMs, 1000); // Minimum 1 second
+      const safeDurationMs = Math.max(rawDurationMs, 2000); 
+
+      // 1. CALCULATE IN SECONDS (This fixes the "Opposite Result" bug)
+      const durationSeconds = safeDurationMs / 1000; 
       const durationMin = safeDurationMs / 60000;
       
-      const activeRatio = activeTime / (safeDurationMs / 1000);
+      const activeRatio = activeTime / durationSeconds;
       
-      // Calculate switch rate safely
+      // Keep rate as "Switches per Minute" (Standard)
       const safeSwitchRate = switchCount / (durationMin || 1);
 
       const sessionDataPayload = {
-        duration: durationMin,
+        // CHANGE THIS: Send Seconds instead of Minutes
+        duration: durationSeconds, 
         switch_count: switchCount,
         active_ratio: activeRatio || 0, 
         switch_rate: safeSwitchRate
       };
 
       try {
-        console.log("📤 Sending Payload to ML:", sessionDataPayload);
+        console.log("📤 Sending Fixed Data to ML:", sessionDataPayload);
 
-        // 1. Get Prediction (Wait for ML)
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionDataPayload);
         
+        // DEBUG: Check what the raw prediction actually is (0 or 1)
         const prediction = predRes.data.prediction;
+        console.log(`🧠 Raw Model Output: ${prediction} (0=Distracted, 1=Focused)`);
+
         const confidence = Math.round(predRes.data.confidence * 100);
         const status = (prediction === 1) ? "Focused" : "Distracted";
 
-        console.log(`✅ ML Status: ${status}`);
-
-        // 2. Get Advice
-        const adviceRes = await axios.post(`${API_BASE_URL}/api/advice`, {
-          concPercent: confidence,
-          status: status 
-        });
-        const finalAdvice = adviceRes.data.advice;
-        setAdvice(finalAdvice);
-
-        // 3. Save to History
-        const saveRes = await axios.post(`${API_BASE_URL}/api/history`, {
-           userId: user.id || user._id,
-           duration: durationMin,
-           switch_count: switchCount,
-           active_ratio: activeRatio,
-           status: status,
-           advice: finalAdvice
-        });
-
-        // 4. Update UI
-        setSessionData(saveRes.data);
-        setSessionHistory([saveRes.data, ...sessionHistory]);
-
-      } catch (err) {
+        // ... rest of your code ...
+         }catch (err) {
         console.error("❌ Process Failed:", err);
         setAdvice("Could not analyze session. Please check connection.");
       } finally {
