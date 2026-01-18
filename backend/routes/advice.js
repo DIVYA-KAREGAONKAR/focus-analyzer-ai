@@ -7,42 +7,49 @@ router.post("/", async (req, res) => {
   const { concPercent, status } = req.body;
   const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
-    return res.json({ advice: "Great focus! Keep it up." });
-  }
+  if (!apiKey) return res.json({ advice: "Great work! Keep it up." });
 
-  try {
-    // 1. HARDCODED URL for the most stable model (gemini-pro)
-    // We stopped trying 1.5-flash because your key/region doesn't support it yet.
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-    
-    const payload = {
-      contents: [{
-        parts: [{
-          text: `User status: ${status} (${concPercent}%). Give 1 sentence of advice.`
+  // STRATEGY: Try modern model first, then legacy model
+  const endpoints = [
+    // Option 1: Modern (Fastest)
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+    // Option 2: Legacy (Most Compatible) - Note the 'v1' instead of 'v1beta'
+    `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const payload = {
+        contents: [{
+          parts: [{
+            text: `User status: ${status} (${concPercent}%). Give 1 sentence of advice.`
+          }]
         }]
-      }]
-    };
+      };
 
-    const response = await axios.post(url, payload, {
-      headers: { "Content-Type": "application/json" }
-    });
+      const response = await axios.post(url, payload, {
+        headers: { "Content-Type": "application/json" }
+      });
 
-    const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    console.log("✅ AI Success (gemini-pro):", adviceText);
-    
-    res.json({ advice: adviceText });
+      const adviceText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (adviceText) {
+        console.log("✅ AI Advice Success!");
+        return res.json({ advice: adviceText });
+      }
 
-  } catch (err) {
-    console.error("❌ Gemini Error:", err.response?.data?.error?.message || err.message);
-    
-    // Fallback so the user sees SOMETHING instead of a blank space
-    res.json({ 
-      advice: status === "Focused" 
-        ? "Excellent momentum. Maintain this flow." 
-        : "Distractions detected. Take a deep breath." 
-    });
+    } catch (err) {
+      console.warn(`⚠️ Endpoint failed, trying next...`);
+    }
   }
+
+  // If BOTH fail, return safe fallback
+  console.error("❌ All AI models failed.");
+  res.json({ 
+    advice: status === "Focused" 
+      ? "Excellent focus. Maintain this rhythm." 
+      : "Distractions detected. Try to reset your focus." 
+  });
 });
 
 export default router;
