@@ -172,7 +172,8 @@ function App() {
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
         // Get Advice
-        const adviceRes = await getAdvice(status, payloadForAI.active_ratio, switchCount);
+        // FIX: Send Integer (95) so the AI understands it's a high score
+const adviceRes = await getAdvice(status, Math.round(payloadForAI.active_ratio * 100), switchCount);
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
