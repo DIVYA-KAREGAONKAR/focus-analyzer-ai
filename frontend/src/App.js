@@ -105,7 +105,7 @@ const [isProcessing, setIsProcessing] = useState(false);
       const sessionDataPayload = {
         duration: durationSeconds, 
         switch_count: switchCount,
-        active_ratio: activeRatio || 0, 
+        active_ratio: activeRatio || 0 * 100, 
         switch_rate: safeSwitchRate
       };
 
