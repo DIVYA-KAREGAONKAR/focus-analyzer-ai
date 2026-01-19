@@ -5,11 +5,11 @@ import Controls from "./components/Controls";
 import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
-import "./index.css"
+import "./index.css";
 import { getAdvice } from "./api/advice";
 
 // Replace with your actual backend URL
-const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
+const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 
 // ✅ Final Clean Component (Relies on index.css)
 const HistoryCard = ({ item }) => {
@@ -59,7 +59,7 @@ const HistoryCard = ({ item }) => {
 };
 
 function App() {
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(null);
   const [startTime, setStartTime] = useState(null);
   const [switchCount, setSwitchCount] = useState(0);
   const [activeTime, setActiveTime] = useState(0);
@@ -68,7 +68,14 @@ function App() {
   const [advice, setAdvice] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // 1. Persistence Check
+  // 1. Ask for Notification Permission on Load
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  // 2. Persistence Check
   useEffect(() => {
     const savedUser = localStorage.getItem("focusUser");
     if (savedUser) {
@@ -76,7 +83,7 @@ function App() {
     }
   }, []);
 
-  // 2. Fetch History
+  // 3. Fetch History
   useEffect(() => {
     if (user) {
       const fetchUserHistory = async () => {
@@ -107,12 +114,13 @@ function App() {
     localStorage.removeItem("focusUser");
   };
 
- const handleEvent = async (type) => {
+  const handleEvent = async (type) => {
     // 1. START
     if (type === "START") {
       console.log("🟢 Session STARTED");
-      if ("Notification" in window && Notification.permission !== "granted") {
-        Notification.requestPermission();
+      // Double check permission on start
+      if (Notification.permission !== "granted") {
+         Notification.requestPermission();
       }
       setStartTime(Date.now());
       setSwitchCount(0);
@@ -132,22 +140,22 @@ function App() {
     if (type === "STOP") {
       const end = Date.now();
       console.log("🔴 Session STOPPED. Analyzing...");
-      
+
       setStartTime(null);
-      setIsProcessing(true); 
-      
+      setIsProcessing(true);
+
       const rawDurationMs = end - startTime;
-      const safeDurationMs = Math.max(rawDurationMs, 2000); 
+      const safeDurationMs = Math.max(rawDurationMs, 2000);
 
       // Calculate Metrics
-      const durationSeconds = safeDurationMs / 1000; 
+      const durationSeconds = safeDurationMs / 1000;
       const durationMin = safeDurationMs / 60000;
       const activeRatio = activeTime / durationSeconds; // Keep as Decimal (0.0 - 1.0)
       const safeSwitchRate = switchCount / (durationMin || 1);
 
-      // ✅ FIX 1: Only multiply by 100 for the AI Payload
+      // Only multiply by 100 for the AI Payload
       const payloadForAI = {
-        duration: durationSeconds, 
+        duration: durationSeconds,
         switch_count: switchCount,
         active_ratio: (activeRatio || 0) * 100, // Send 50.0 to AI
         switch_rate: safeSwitchRate
@@ -157,11 +165,11 @@ function App() {
         console.log("📤 Sending Data to ML:", payloadForAI);
 
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, payloadForAI);
-        
+
         const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
-        
-        // Swap Logic (0=Focused)
+
+        // Swap Logic (0=Focused for your specific model)
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
         // Get Advice
@@ -169,11 +177,24 @@ function App() {
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        // ✅ FIX 2: Save DECIMAL to state (so UI shows 50%, not 5000%)
+        // ✅ NEW: Trigger Real-Time Notification
+        if (status === "Distracted" && Notification.permission === "granted") {
+           new Notification("⚠️ Focus Alert!", {
+             body: `Distraction Detected! ${newAdvice.substring(0, 40)}...`,
+             icon: "/logo192.png" // Uses your app logo if available
+           });
+        } else if (status === "Focused" && Notification.permission === "granted") {
+            new Notification("🎯 Great Focus!", {
+             body: `You maintained ${Math.round(payloadForAI.active_ratio)}% focus intensity!`,
+             icon: "/logo192.png"
+           });
+        }
+
+        // Save DECIMAL to state (so UI shows 50%, not 5000%)
         const finalResult = {
           ...payloadForAI,
           active_ratio: activeRatio, // Save 0.5 here
-          prediction: prediction, 
+          prediction: prediction,
           confidence: confidence,
           status: status,
           advice: newAdvice,
@@ -195,7 +216,8 @@ function App() {
   const downloadPDF = () => {
     if (!sessionData) return;
     const doc = new jsPDF();
-    const focusScore = Math.round(sessionData.active_ratio);
+    // Fix: Multiply by 100 here since active_ratio is decimal
+    const focusScore = Math.round(sessionData.active_ratio * 100);
     doc.setFontSize(22);
     doc.setTextColor(96, 165, 250);
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
@@ -224,12 +246,12 @@ function App() {
       </nav>
 
       <div className="layout-body">
-        
-        {/* 2. LEFT SIDEBAR (Using Smart Card) */}
+
+        {/* 2. LEFT SIDEBAR */}
         <div className="history-list">
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
           {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
-          
+
           {sessionHistory.map((item, index) => (
              <HistoryCard key={index} item={item} />
           ))}
@@ -237,9 +259,9 @@ function App() {
 
         {/* 3. MAIN CENTER AREA */}
         <main className="main-center">
-          
+
           <div className="content-scroll-area">
-            
+
             {/* STATE 1: PROCESSING */}
             {isProcessing && (
               <div className="processing-state">
@@ -260,27 +282,41 @@ function App() {
                </div>
             )}
 
-            {/* STATE 3: DASHBOARD MODE (Chart + Result) */}
-            {!isProcessing && !startTime && (
+            {/* STATE 3: WELCOME SCREEN (Gemini Style) */}
+            {/* Logic: Show this ONLY if no active session AND no result yet */}
+            {!isProcessing && !startTime && !sessionData && (
+               <div className="welcome-container">
+                 <h1 className="welcome-title">
+                   Hi {user.name?.split(" ")[0] || "Friend"}
+                 </h1>
+                 <h2 className="welcome-subtitle">
+                   Where should we start?<span className="welcome-cursor"></span>
+                 </h2>
+                 <div className="chart-wrapper" style={{marginTop: '40px', opacity: 0.8, transform: 'scale(0.9)'}}>
+                   <FocusChart history={sessionHistory} />
+                 </div>
+               </div>
+            )}
+
+            {/* STATE 4: DASHBOARD MODE (Result + Chart) */}
+            {sessionData && (
                <div className="dashboard-view">
-                 
+
                  {/* A. Chart (Always Top) */}
                  <div className="chart-wrapper">
                    <FocusChart history={sessionHistory} />
                  </div>
 
                  {/* B. Result (Below Chart) */}
-                 {sessionData && (
-                    <div className="result-wrapper" style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
-                      <SessionResult sessionData={sessionData} />
-                      
-                      <div style={{display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
-                        <button onClick={downloadPDF} className="download-btn">
-                          Download PDF Report
-                        </button>
-                      </div>
+                 <div className="result-wrapper" style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
+                    <SessionResult sessionData={sessionData} />
+
+                    <div style={{display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
+                      <button onClick={downloadPDF} className="download-btn">
+                        Download PDF Report
+                      </button>
                     </div>
-                 )}
+                 </div>
 
                </div>
             )}
@@ -289,12 +325,12 @@ function App() {
           {/* 4. BOTTOM CONTROLS */}
           <div className="bottom-input-area">
             <div className="controls-card">
-              
+
               {!startTime && !isProcessing && (
-                <button 
-                  className="ctrl-btn start-btn" 
+                <button
+                  className="ctrl-btn start-btn"
                   onClick={() => {
-                    setSessionData(null); 
+                    setSessionData(null);
                     handleEvent("START");
                   }}
                 >
@@ -304,15 +340,15 @@ function App() {
 
               {startTime && !isProcessing && (
                 <div className="btn-group">
-                  <button 
-                    className="ctrl-btn switch-btn" 
+                  <button
+                    className="ctrl-btn switch-btn"
                     onClick={() => handleEvent("SWITCH")}
                   >
                     Switch Task ({switchCount})
                   </button>
-                  
-                  <button 
-                    className="ctrl-btn stop-btn" 
+
+                  <button
+                    className="ctrl-btn stop-btn"
                     onClick={() => handleEvent("STOP")}
                   >
                     Stop Session
@@ -336,6 +372,4 @@ function App() {
 }
 
 export default App;
-
-
 

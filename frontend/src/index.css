@@ -14,7 +14,47 @@
 
 
 
+/* --- WELCOME SCREEN (Gemini Style) --- */
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  height: 60vh; /* Takes up most of the screen height */
+  text-align: center;
+  animation: fadeIn 0.8s ease-out;
+}
 
+.welcome-title {
+  font-size: 3.5rem; /* Big text */
+  font-weight: 700;
+  margin-bottom: 10px;
+  background: linear-gradient(to right, #4f46e5, #9333ea); /* Blue-Purple Gradient */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+.welcome-subtitle {
+  font-size: 2rem;
+  color: #d1d5db; /* Light grey */
+  font-weight: 500;
+}
+
+/* Optional: Add a subtle blinking cursor */
+.welcome-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background-color: #9333ea;
+  margin-left: 5px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
 /* --- REPLACE YOUR EXISTING .history-card CSS WITH THIS --- */
 
 .history-card {
