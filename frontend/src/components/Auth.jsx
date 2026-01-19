@@ -5,6 +5,15 @@ const Auth = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '', name: '' });
 
+  // 1. Define the style here to prevent syntax errors in the HTML
+  const linkStyle = {
+    color: '#4f46e5', // The Blue Color
+    cursor: 'pointer',
+    marginTop: '20px',
+    textAlign: 'center',
+    fontWeight: '600'
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -15,7 +24,7 @@ const Auth = ({ onAuthSuccess }) => {
     
     // Choose the endpoint based on the current state
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-    // Ensure this URL matches your actual backend URL
+    // Ensure this matches your backend URL exactly
     const BACKEND_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
     try {
@@ -86,16 +95,11 @@ const Auth = ({ onAuthSuccess }) => {
           </button>
         </form>
 
+        {/* ✅ CLEANER CODE: Uses the variable 'linkStyle' we made above */}
         <p 
           className="auth-toggle" 
           onClick={() => setIsLogin(!isLogin)} 
-          style={{ 
-            color: '#4f46e5', // ✅ Visible Blue Color
-            cursor: 'pointer', 
-            marginTop: '20px', 
-            textAlign: 'center',
-            fontWeight: '600'
-          }}
+          style={linkStyle}
         >
           {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
         </p>
