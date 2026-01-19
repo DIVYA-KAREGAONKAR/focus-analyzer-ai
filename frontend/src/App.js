@@ -11,7 +11,6 @@ import { getAdvice } from "./api/advice";
 // Replace with your actual backend URL
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 
-/// ✅ HistoryCard: Fixes "0%" display issue
 // ✅ HistoryCard: FINAL FIX for "0%" Display
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -139,20 +138,24 @@ function App() {
       setSwitchCount((prev) => prev + 1);
     }
 
+    // 3. STOP
     if (type === "STOP") {
       const end = Date.now();
+      console.log("🔴 Session STOPPED. Analyzing...");
+
       setStartTime(null);
       setIsProcessing(true);
 
       const rawDurationMs = end - startTime;
       const safeDurationMs = Math.max(rawDurationMs, 2000);
 
+      // Calculate Metrics
       const durationSeconds = safeDurationMs / 1000;
       const durationMin = safeDurationMs / 60000;
       const activeRatio = activeTime / durationSeconds; 
       const safeSwitchRate = switchCount / (durationMin || 1);
 
-      // Keep active_ratio as DECIMAL (0.85) here
+      // 1. Keep Payload for AI as DECIMAL (0.98) - AI likes decimals
       const payloadForAI = {
         duration: durationSeconds,
         switch_count: switchCount,
@@ -161,18 +164,32 @@ function App() {
       };
 
       try {
+        console.log("📤 Sending Data to ML:", payloadForAI);
+
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, payloadForAI);
         const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
+        // Get Advice
         const adviceRes = await getAdvice(status, payloadForAI.active_ratio, switchCount);
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        const finalResult = {
+        // Notification Logic
+        if (Notification.permission === "granted") {
+           if (status === "Distracted") {
+             new Notification("⚠️ Focus Alert!", { body: "Distraction Detected!" });
+           } else {
+             new Notification("🎯 Great Focus!", { body: "You maintained high focus!" });
+           }
+        }
+
+        // ✅ THE FIX: Create a separate object for the Database
+        // We convert active_ratio to an INTEGER (e.g., 98) so the DB doesn't round it to 0.
+        const finalResultForDB = {
           ...payloadForAI,
-          active_ratio: activeRatio,
+          active_ratio: Math.round(activeRatio * 100), // <--- SAVES 98 INSTEAD OF 0.98
           prediction: prediction,
           confidence: confidence,
           status: status,
@@ -180,18 +197,21 @@ function App() {
           timestamp: new Date().toISOString()
         };
 
+        // ✅ Save the INTEGER version to Database
         try {
             await axios.post(`${API_BASE_URL}/api/history`, { 
                 userId: user.id, 
-                session: finalResult 
+                session: finalResultForDB 
             });
-            // Update local state immediately
-            setSessionHistory(prev => [finalResult, ...prev]);
+            console.log("Saved to DB successfully");
+            
+            // Update local state with the same data so it matches
+            setSessionHistory(prev => [finalResultForDB, ...prev]);
         } catch (dbErr) {
             console.error("Failed to save to DB:", dbErr);
         }
 
-        setSessionData(finalResult);
+        setSessionData(finalResultForDB);
 
       } catch (err) {
         console.error("❌ Process Failed:", err);
