@@ -5,9 +5,9 @@ const Auth = ({ onAuthSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ email: '', password: '', name: '' });
 
-  // 1. Define the style here to prevent syntax errors in the HTML
+  // ✅ FIX 1: Defined style here to avoid syntax errors
   const linkStyle = {
-    color: '#4f46e5', // The Blue Color
+    color: '#4f46e5', // Blue color (Visible on white background)
     cursor: 'pointer',
     marginTop: '20px',
     textAlign: 'center',
@@ -95,7 +95,7 @@ const Auth = ({ onAuthSuccess }) => {
           </button>
         </form>
 
-        {/* ✅ CLEANER CODE: Uses the variable 'linkStyle' we made above */}
+        {/* ✅ FIX 2: Correctly applied style using the variable */}
         <p 
           className="auth-toggle" 
           onClick={() => setIsLogin(!isLogin)} 
