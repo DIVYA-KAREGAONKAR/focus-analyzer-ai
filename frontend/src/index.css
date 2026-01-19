@@ -13,6 +13,90 @@
 }
 
 
+
+
+/* --- REPLACE YOUR EXISTING .history-card CSS WITH THIS --- */
+
+.history-card {
+  /* 1. Force Vertical Layout (Fixes the squashed text) */
+  display: flex;
+  flex-direction: column !important; 
+  gap: 8px;
+  
+  /* 2. Visual Styling */
+  background: white;
+  padding: 12px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-left: 4px solid #ddd; /* Default border color */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%; /* Ensure it fills the width */
+}
+
+.history-card:hover {
+  transform: translateX(2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+/* Status Colors */
+.history-card.focused { border-left-color: #10b981; }
+.history-card.distracted { border-left-color: #ef4444; }
+
+/* The Header Row (Status & Score) */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* The Meta Row (Date & Time) */
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #6b7280;
+  font-size: 0.8rem;
+  width: 100%;
+}
+
+/* The Advice Text (When expanded) */
+.card-advice-dropdown {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
+  width: 100%;
+  display: block; /* Forces it to break to a new line */
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* --- NEW BUTTON STYLES --- */
 
 /* 1. Sign Out Button (Top Right) */
@@ -59,21 +143,7 @@
   transform: translateY(0);
 }
 
-/* 3. History Card Interactions */
-.history-card:hover {
-  transform: translateX(4px); /* Slight nudge effect */
-  border-color: #bfdbfe; /* Light blue border on hover */
-}
 
-/* Animation for the dropdown advice */
-.card-advice-dropdown {
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 .processing-state {
   display: flex;
   flex-direction: column;

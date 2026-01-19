@@ -11,7 +11,7 @@ import { getAdvice } from "./api/advice";
 // Replace with your actual backend URL
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
-// ✅ New Component: Cleaner Layout
+// ✅ Final Clean Component (Relies on index.css)
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -19,37 +19,37 @@ const HistoryCard = ({ item }) => {
     <div 
       className={`history-card ${item.status?.toLowerCase()}`} 
       onClick={() => setIsOpen(!isOpen)}
-      style={{ cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative' }}
+      style={{ cursor: 'pointer' }}
     >
-      {/* 1. Header: Status & Score */}
-      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-        <div style={{display:'flex', alignItems:'center', gap: '8px'}}>
+      {/* ROW 1: Status & Score */}
+      <div className="card-header">
+        <div style={{display:'flex', alignItems:'center', gap: '6px'}}>
           <span className="status-dot"></span>
-          <span className="card-status" style={{fontWeight: '600'}}>{item.status || "Completed"}</span>
+          <span style={{fontWeight: '600', fontSize: '0.9rem'}}>
+            {item.status || "Completed"}
+          </span>
         </div>
-        <span className="card-score" style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
+        <span style={{fontWeight: 'bold', fontSize: '0.9rem', color: '#374151'}}>
           {Math.round((item.active_ratio || 0) * 100)}%
         </span>
       </div>
 
-      {/* 2. Date & Time (Cleanly separated) */}
-      <div className="card-meta" style={{ display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '0.85rem' }}>
+      {/* ROW 2: Date & Arrow */}
+      <div className="card-meta">
         <span>
           {new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          <span style={{ margin: '0 6px' }}>•</span>
+          <span style={{ margin: '0 4px', opacity: 0.3 }}>|</span>
           {new Date(item.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
         </span>
-        
-        {/* Arrow Hint */}
-        <span style={{ fontSize: '10px', opacity: 0.6, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
-          ▼
+        <span style={{ fontSize: '10px', opacity: 0.5 }}>
+          {isOpen ? "▲" : "▼"}
         </span>
       </div>
 
-      {/* 3. Hidden Advice */}
+      {/* ROW 3: Advice (Only shows when open) */}
       {isOpen && item.advice && (
-        <div className="card-advice-dropdown" style={{marginTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px'}}>
-          <p style={{fontSize: '0.9rem', color: '#444', lineHeight: '1.5', fontStyle: 'italic'}}>
+        <div className="card-advice-dropdown">
+          <p style={{fontSize: '0.85rem', color: '#4b5563', lineHeight: '1.5', fontStyle: 'italic'}}>
             "{item.advice.replace(/\*\*/g, '')}"
           </p>
         </div>
