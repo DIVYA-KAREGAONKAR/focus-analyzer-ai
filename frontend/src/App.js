@@ -95,8 +95,16 @@ function App() {
     }
   }, []);
 
+  // 3. Fetch History & AUTO-RESET Screen
   useEffect(() => {
     if (user) {
+      // ✅ FIX: Force-clear the previous user's "Result Card" immediately
+      setSessionData(null); 
+      setAdvice("");
+      setStartTime(null); // Ensure timer is reset
+      setIsProcessing(false);
+
+      // Now fetch the NEW user's history
       const fetchUserHistory = async () => {
         try {
           const res = await axios.get(`${API_BASE_URL}/api/history/${user.id}`);
@@ -106,8 +114,13 @@ function App() {
         }
       };
       fetchUserHistory();
+    } else {
+      // If user logs out (user becomes null), wipe everything
+      setSessionHistory([]);
+      setSessionData(null);
+      setAdvice("");
     }
-  }, [user]);
+  }, [user]); // Runs every time 'user' changes, [user]);
 
   useEffect(() => {
     let interval;
