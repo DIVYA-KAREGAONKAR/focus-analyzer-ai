@@ -12,26 +12,98 @@
   --radius-lg: 24px;
 }
 
+/* =========================================
+   1. GLOBAL LAYOUT & DESKTOP DEFAULTS
+   ========================================= */
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden; /* Prevents scroll bounce on desktop */
+}
 
-/* --- WELCOME SCREEN (Fixed Layout) --- */
+/* Main Wrapper */
+.chat-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--bg-app);
+}
+
+.layout-body {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+}
+
+/* SIDEBAR (Desktop Default) */
+.history-list {
+  width: var(--sidebar-width);
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid #e5e7eb;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* MAIN CONTENT AREA (Desktop Default) */
+.main-center {
+  flex: 1;
+  position: relative; /* Establishes context for absolute positioning */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; 
+}
+
+/* SCROLL AREA (Desktop Default) */
+.content-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  padding-bottom: 100px; /* Space for the absolute bottom bar */
+}
+
+/* BOTTOM BUTTONS (Desktop Default - ABSOLUTE) */
+.bottom-input-area {
+  position: absolute; /* Your preferred desktop behavior */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: white; 
+  border-top: 1px solid #f0f0f0;
+  z-index: 10;
+}
+
+/* =========================================
+   2. COMPONENTS & STYLING
+   ========================================= */
+
+/* Welcome Screen */
 .welcome-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center; /* Puts content in the middle of available space */
+  justify-content: center;
   padding: 20px;
   animation: fadeIn 0.8s ease-out;
   width: 100%;
-  max-width: 900px; /* Prevents it from getting too wide on huge screens */
-  margin: 0 auto;   /* Centers the container itself */
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .welcome-title {
-  font-size: 2.5rem; /* Slightly smaller for better balance */
+  font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 8px;
-  background: linear-gradient(to right, #2563eb, #7c3aed); /* Blue to Purple */
+  background: linear-gradient(to right, #2563eb, #7c3aed);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
@@ -39,109 +111,43 @@
 
 .welcome-subtitle {
   font-size: 1.5rem;
-  color: #374151; /* Darker grey for better readability */
+  color: #374151;
   font-weight: 500;
 }
 
-/* Optional: Add a subtle blinking cursor */
-.welcome-cursor {
-  display: inline-block;
-  width: 3px;
-  height: 1em;
-  background-color: #9333ea;
-  margin-left: 5px;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-/* --- REPLACE YOUR EXISTING .history-card CSS WITH THIS --- */
-
+/* History Cards */
 .history-card {
-  /* 1. Force Vertical Layout (Fixes the squashed text) */
   display: flex;
   flex-direction: column !important; 
   gap: 8px;
-  
-  /* 2. Visual Styling */
   background: white;
   padding: 12px;
   border-radius: 12px;
   margin-bottom: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-left: 4px solid #ddd; /* Default border color */
+  border-left: 4px solid #ddd;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  width: 100%; /* Ensure it fills the width */
+  width: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't overflow width */
 }
 
-.history-card:hover {
-  transform: translateX(2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.08);
-}
-
-/* Status Colors */
+.history-card:hover { transform: translateX(2px); box-shadow: 0 4px 6px rgba(0,0,0,0.08); }
 .history-card.focused { border-left-color: #10b981; }
 .history-card.distracted { border-left-color: #ef4444; }
 
-/* The Header Row (Status & Score) */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
+.card-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.card-meta { display: flex; justify-content: space-between; color: #6b7280; font-size: 0.8rem; width: 100%; }
 
-/* The Meta Row (Date & Time) */
-.card-meta {
-  display: flex;
-  justify-content: space-between;
-  color: #6b7280;
-  font-size: 0.8rem;
-  width: 100%;
-}
-
-/* The Advice Text (When expanded) */
 .card-advice-dropdown {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid #f3f4f6;
   width: 100%;
-  display: block; /* Forces it to break to a new line */
+  display: block;
   animation: slideDown 0.3s ease-out;
 }
 
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* --- NEW BUTTON STYLES --- */
-
-/* 1. Sign Out Button (Top Right) */
+/* Buttons */
 .logout-btn {
   background-color: #fee2e2;
   color: #ef4444;
@@ -154,12 +160,8 @@
   transition: all 0.2s;
 }
 
-.logout-btn:hover {
-  background-color: #fecaca;
-  transform: translateY(-1px);
-}
+.logout-btn:hover { background-color: #fecaca; transform: translateY(-1px); }
 
-/* 2. Download PDF Button */
 .download-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
@@ -175,85 +177,53 @@
   align-items: center;
   gap: 8px;
 }
+.download-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4); }
 
-.download-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
-}
-
-.download-btn:active {
-  transform: translateY(0);
-}
-
-
+/* Processing / Spinner */
 .processing-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 60vh; /* Takes up most of the screen */
+  height: 60vh;
   color: #4b5563;
   text-align: center;
 }
-
-.processing-state h3 {
-  margin-top: 1.5rem;
-  font-size: 1.4rem;
-  color: #111827;
-  font-weight: 600;
-}
-
-.processing-state p {
-  color: #6b7280;
-  margin-top: 0.5rem;
-}
-
+.processing-state h3 { margin-top: 1.5rem; font-size: 1.4rem; color: #111827; font-weight: 600; }
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 50px; height: 50px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #3b82f6; /* Blue Color */
+  border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+/* Keyframes */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-/* Ensure Bottom Controls stick to bottom */
-.bottom-input-area {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 20px;
-  background: white; /* Important so it doesn't overlap transparently */
-  border-top: 1px solid #f0f0f0;
-  z-index: 10;
-}
-
-
-
-
-
-
-/* --- MOBILE VIEW FIXES --- */
+/* =========================================
+   3. MOBILE OVERRIDES (STRICT)
+   ========================================= */
 @media (max-width: 768px) {
 
-  /* 1. Hide Sidebar on Mobile to save space */
-  .history-list {
-    display: none; 
+  /* A. Layout Basics */
+  .chat-layout {
+    height: 100dvh; /* Dynamic Height: Fixes URL bar cutting off content */
+    flex-direction: column;
   }
-
-  /* 2. Stack the layout vertically */
+  
   .layout-body {
     flex-direction: column;
-    height: 100dvh; /* Use Dynamic Height to avoid URL bar issues */
+    height: 100%;
+    overflow: hidden;
   }
 
-  /* 3. Make the center area take all available height */
+  /* B. Hide Sidebar */
+  .history-list { display: none; }
+
+  /* C. Main Content: Column Flex */
   .main-center {
     width: 100%;
     height: 100%;
@@ -261,29 +231,36 @@
     flex-direction: column;
   }
 
-  /* 4. Allow the middle content (Chart/Advice) to scroll */
+  /* D. Scroll Area: Flex Grow */
   .content-scroll-area {
-    flex: 1; /* Takes all space NOT used by the buttons */
-    overflow-y: auto; 
-    padding-bottom: 80px; /* Extra space so text doesn't hide behind buttons */
+    flex: 1; /* Takes all available space */
+    overflow-y: auto;
+    width: 100%;
+    padding: 16px;
+    padding-bottom: 20px; /* Reduces the huge desktop padding */
   }
 
-  /* 5. PIN THE BUTTONS TO THE BOTTOM */
+  /* E. Bottom Buttons: FIXED to Viewport Bottom (Mobile Style) */
   .bottom-input-area {
-    flex-shrink: 0; /* Prevents buttons from getting squished */
+    /* 1. Reset Desktop Styles */
+    position: relative; /* Change from absolute to relative/sticky */
+    left: auto;
+    right: auto;
+    bottom: auto;
+    
+    /* 2. Mobile Layout */
+    flex-shrink: 0; /* Prevents shrinking */
     background: #fff;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #e5e7eb;
     
-    /* Extra padding for iPhone "Home Indicator" bar */
-    padding-bottom: 25px; 
-    padding-top: 15px;
+    /* 3. Safe Area for modern iPhones */
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
     
-    /* Ensure it sits on top of everything */
-    z-index: 50; 
-    position: relative; 
+    z-index: 50;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
   }
 }
-
 
 
 
