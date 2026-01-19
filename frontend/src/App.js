@@ -300,12 +300,12 @@ function App() {
                    </h1>
                    <h2 className="welcome-subtitle">
                      Ready to optimize your cognitive flow?
-                     <span className="welcome-cursor"></span>
+                  
                    </h2>
                    <p style={{ color: '#6b7280', marginTop: '10px' }}>
                      Start a session to measure your attention span and intensity.
                    </p>
-                 </div>
+                 </div>style={{ color: 'white', cursor: 'pointer', marginTop: '20px', textAlign: 'center' }}
 
                </div>
             )}

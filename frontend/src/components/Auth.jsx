@@ -92,7 +92,13 @@ const handleSubmit = async (e) => {
           </button>
         </form>
 
-        <p className="auth-toggle" onClick={() => setIsLogin(!isLogin)} style={{ color: 'white', cursor: 'pointer', marginTop: '20px', textAlign: 'center' }}>
+        <p className="auth-toggle" onClick={() => setIsLogin(!isLogin)} style={{ 
+            color: '#4f46e5', // ✅ FIX: Make it visible (Blue)
+            cursor: 'pointer', 
+            marginTop: '20px', 
+            textAlign: 'center',
+            fontWeight: '600'
+          }}>
           {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
         </p>
       </div>
