@@ -4,64 +4,26 @@ import Prediction from "../models/Prediction.js";
 
 const router = express.Router();
 
-// Helper: Wait Timer
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// ✅ USE PUBLIC URL (Since Internal is hidden/failing)
-const ML_URL = "https://focus-analyzer-ai-3.onrender.com/predict";
-
 router.post("/", async (req, res) => {
+  // 1. READ URL FROM DASHBOARD (Or fallback to internal default)
+  const ML_URL = process.env.ML_CONNECT_URL || "http://focus-analyzer-ai-3:5000/predict";
+  
   console.log("📥 Backend Processing:", req.body);
+  console.log(`📡 Connecting to ML Service at: ${ML_URL}`);
+
   const { duration } = req.body;
 
   if (!duration || duration <= 0) {
     return res.status(400).json({ error: "Invalid duration." });
   }
 
-  // ✅ STEALTH MODE: Disguise as Google Chrome
-  // This prevents Render from flagging your request as a bot.
-  const browserHeaders = {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'application/json',
-      'Connection': 'keep-alive',
-      'Cache-Control': 'no-cache'
-    },
-    timeout: 60000 // 60s Timeout for Cold Starts
-  };
-
   try {
-    let response;
-    let attempts = 0;
-    let success = false;
-    
-    // RETRY LOOP: If blocked (429), wait 30s and try again
-    while (attempts < 2 && !success) {
-      try {
-        attempts++;
-        console.log(`📡 Connecting to ML (Attempt ${attempts})...`);
-        
-        response = await axios.post(ML_URL, req.body, browserHeaders);
-        success = true; 
+    // 2. CONNECT
+    // We try the Internal URL first. It is faster and has NO Rate Limits.
+    const response = await axios.post(ML_URL, req.body, {
+      timeout: 60000 // 60s timeout
+    });
 
-      } catch (err) {
-        const status = err.response ? err.response.status : 0;
-        console.warn(`⚠️ Attempt ${attempts} Failed (Status: ${status})`);
-
-        // IF 429 (Blocked) or 503 (Sleeping) -> WAIT 30 SECONDS
-        if (status === 429 || status === 503) {
-           console.log("⏳ Rate Limit Hit. Cooling down for 30s...");
-           await wait(30000); // Wait out the penalty
-           console.log("🔄 Retrying now...");
-        } else {
-           throw err; // Stop for real errors (like 404)
-        }
-      }
-    }
-
-    if (!success) throw new Error("Server is locked.");
-
-    // SUCCESS
     const mlPrediction = Number(response.data.prediction);
     const confidence = Number(response.data.confidence);
 
@@ -79,9 +41,16 @@ router.post("/", async (req, res) => {
     res.json({ prediction: mlPrediction, confidence });
 
   } catch (error) {
-    console.error("⛔ FAIL:", error.message);
+    console.error("⛔ CONNECTION FAILED:", error.message);
+    
+    // DEBUG HELP: Tell us exactly why it failed
+    if (error.code === 'ENOTFOUND') {
+      console.error("⚠️ DNS Error: The Node app cannot find 'focus-analyzer-ai-3'.");
+      console.error("👉 Fix: Ensure both services are in the 'Oregon' region.");
+    }
+
     res.status(500).json({ 
-      error: "ML Service is busy. Please try again in 1 minute.", 
+      error: "ML Service unavailable. Please try again.", 
       details: error.message 
     });
   }
