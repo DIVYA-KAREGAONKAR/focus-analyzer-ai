@@ -4,13 +4,11 @@ import Prediction from "../models/Prediction.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-  // 1. READ URL FROM DASHBOARD (Or fallback to internal default)
-  const ML_URL = process.env.ML_CONNECT_URL || "http://focus-analyzer-ai-3:5000/predict";
-  
-  console.log("📥 Backend Processing:", req.body);
-  console.log(`📡 Connecting to ML Service at: ${ML_URL}`);
+// ✅ NEW STABLE URL (Hugging Face)
+const ML_URL = "https://divyakaregaonkar-focus-analyzer-ai.hf.space/predict";
 
+router.post("/", async (req, res) => {
+  console.log("📥 Backend Processing:", req.body);
   const { duration } = req.body;
 
   if (!duration || duration <= 0) {
@@ -18,11 +16,10 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // 2. CONNECT
-    // We try the Internal URL first. It is faster and has NO Rate Limits.
-    const response = await axios.post(ML_URL, req.body, {
-      timeout: 60000 // 60s timeout
-    });
+    console.log(`📡 Connecting to Hugging Face ML...`);
+    
+    // Direct call. No retries or "stealth mode" needed anymore!
+    const response = await axios.post(ML_URL, req.body);
 
     const mlPrediction = Number(response.data.prediction);
     const confidence = Number(response.data.confidence);
@@ -41,16 +38,9 @@ router.post("/", async (req, res) => {
     res.json({ prediction: mlPrediction, confidence });
 
   } catch (error) {
-    console.error("⛔ CONNECTION FAILED:", error.message);
-    
-    // DEBUG HELP: Tell us exactly why it failed
-    if (error.code === 'ENOTFOUND') {
-      console.error("⚠️ DNS Error: The Node app cannot find 'focus-analyzer-ai-3'.");
-      console.error("👉 Fix: Ensure both services are in the 'Oregon' region.");
-    }
-
+    console.error("⛔ FAIL:", error.message);
     res.status(500).json({ 
-      error: "ML Service unavailable. Please try again.", 
+      error: "ML Service Error", 
       details: error.message 
     });
   }
