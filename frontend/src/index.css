@@ -14,30 +14,32 @@
 
 
 
-/* --- WELCOME SCREEN (Gemini Style) --- */
+/* --- WELCOME SCREEN (Fixed Layout) --- */
 .welcome-container {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center horizontally */
-  justify-content: center; /* Center vertically */
-  height: 60vh; /* Takes up most of the screen height */
-  text-align: center;
+  align-items: center;
+  justify-content: center; /* Puts content in the middle of available space */
+  padding: 20px;
   animation: fadeIn 0.8s ease-out;
+  width: 100%;
+  max-width: 900px; /* Prevents it from getting too wide on huge screens */
+  margin: 0 auto;   /* Centers the container itself */
 }
 
 .welcome-title {
-  font-size: 3.5rem; /* Big text */
+  font-size: 2.5rem; /* Slightly smaller for better balance */
   font-weight: 700;
-  margin-bottom: 10px;
-  background: linear-gradient(to right, #4f46e5, #9333ea); /* Blue-Purple Gradient */
+  margin-bottom: 8px;
+  background: linear-gradient(to right, #2563eb, #7c3aed); /* Blue to Purple */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
 }
 
 .welcome-subtitle {
-  font-size: 2rem;
-  color: #d1d5db; /* Light grey */
+  font-size: 1.5rem;
+  color: #374151; /* Darker grey for better readability */
   font-weight: 500;
 }
 

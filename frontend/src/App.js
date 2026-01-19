@@ -284,17 +284,29 @@ function App() {
 
             {/* STATE 3: WELCOME SCREEN (Gemini Style) */}
             {/* Logic: Show this ONLY if no active session AND no result yet */}
+            {/* STATE 3: WELCOME SCREEN (Chart -> Text -> Button) */}
             {!isProcessing && !startTime && !sessionData && (
                <div className="welcome-container">
-                 <h1 className="welcome-title">
-                   Hi {user.name?.split(" ")[0] || "Friend"}
-                 </h1>
-                 <h2 className="welcome-subtitle">
-                   Where should we start?<span className="welcome-cursor"></span>
-                 </h2>
-                 <div className="chart-wrapper" style={{marginTop: '40px', opacity: 0.8, transform: 'scale(0.9)'}}>
+                 
+                 {/* 1. CHART (Now at the Top & Full Size) */}
+                 <div className="chart-wrapper" style={{ marginBottom: '30px', width: '100%' }}>
                    <FocusChart history={sessionHistory} />
                  </div>
+
+                 {/* 2. TEXT (Middle, Focus-Themed) */}
+                 <div style={{ textAlign: 'center', zIndex: 2 }}>
+                   <h1 className="welcome-title">
+                     Welcome back, {user.name?.split(" ")[0] || "Focus Pro"}
+                   </h1>
+                   <h2 className="welcome-subtitle">
+                     Ready to optimize your cognitive flow?
+                     <span className="welcome-cursor"></span>
+                   </h2>
+                   <p style={{ color: '#6b7280', marginTop: '10px' }}>
+                     Start a session to measure your attention span and intensity.
+                   </p>
+                 </div>
+
                </div>
             )}
 
