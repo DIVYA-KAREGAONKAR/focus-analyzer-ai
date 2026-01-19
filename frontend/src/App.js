@@ -188,7 +188,7 @@ return (
 
       <div className="layout-body">
         
-        {/* 2. LEFT SIDEBAR (Fixed: Now includes Date & Advice Preview) */}
+        {/* 2. LEFT SIDEBAR (History) */}
         <div className="history-list">
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
           {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
@@ -231,18 +231,8 @@ return (
               </div>
             )}
 
-            {/* STATE 2: SHOW RESULT */}
-            {!isProcessing && sessionData && (
-              <div className="result-wrapper">
-                <SessionResult sessionData={sessionData} />
-                <button onClick={downloadPDF} className="download-btn" style={{marginTop: '20px'}}>
-                  Download PDF Report
-                </button>
-              </div>
-            )}
-
-            {/* STATE 3: ACTIVE TIMER */}
-            {!isProcessing && !sessionData && startTime && (
+            {/* STATE 2: ACTIVE TIMER (Hide Chart, Show Timer) */}
+            {!isProcessing && startTime && (
                <div className="timer-display">
                   <div className="timer-circle">
                     <h1>{new Date(Date.now() - startTime).toISOString().substr(11, 8)}</h1>
@@ -252,17 +242,33 @@ return (
                </div>
             )}
 
-            {/* STATE 4: START SCREEN (Charts) */}
-            {!isProcessing && !sessionData && !startTime && (
-               <div className="welcome-screen">
+            {/* STATE 3: DASHBOARD MODE (Chart + Result) */}
+            {!isProcessing && !startTime && (
+               <div className="dashboard-view">
+                 
+                 {/* A. The Chart (Always at the top) */}
                  <div className="chart-wrapper">
                    <FocusChart history={sessionHistory} />
                  </div>
+
+                 {/* B. The Result (Appears BELOW chart if data exists) */}
+                 {sessionData && (
+                    <div className="result-wrapper" style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
+                      <SessionResult sessionData={sessionData} />
+                      
+                      <div style={{display: 'flex', justifyContent: 'center', marginTop: '20px'}}>
+                        <button onClick={downloadPDF} className="download-btn">
+                          Download PDF Report
+                        </button>
+                      </div>
+                    </div>
+                 )}
+
                </div>
             )}
           </div>
 
-          {/* 4. BOTTOM CONTROLS (RESTORED!) */}
+          {/* 4. BOTTOM CONTROLS */}
           <div className="bottom-input-area">
             <div className="controls-card">
               
@@ -271,7 +277,7 @@ return (
                 <button 
                   className="ctrl-btn start-btn" 
                   onClick={() => {
-                    setSessionData(null); // Clear previous result
+                    setSessionData(null); // Clear previous result so user starts fresh
                     handleEvent("START");
                   }}
                 >
