@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-// src/components/Auth.jsx
 import axios from 'axios';
 
 const Auth = ({ onAuthSuccess }) => {
@@ -11,39 +10,34 @@ const Auth = ({ onAuthSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // src/components/Auth.jsx
-// src/components/Auth.jsx
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  
-  // Choose the endpoint based on the current state
-  const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
-  const BACKEND_URL = "https://focus-analyzer-ai-4.onrender.com";
-
-  try {
-    const res = await axios.post(`${BACKEND_URL}${endpoint}`, formData);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     
-    console.log("Backend Response:", res.data);
+    // Choose the endpoint based on the current state
+    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+    // Ensure this URL matches your actual backend URL
+    const BACKEND_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
-    // Both Login and Register now return a 'user' object in your server.js
-    if (res.data && res.data.user) {
-      localStorage.setItem("focusUser", JSON.stringify(res.data.user));
+    try {
+      const res = await axios.post(`${BACKEND_URL}${endpoint}`, formData);
       
-      // Only login usually returns a token, but it's safe to check
-      if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
+      console.log("Backend Response:", res.data);
+
+      if (res.data && res.data.user) {
+        localStorage.setItem("focusUser", JSON.stringify(res.data.user));
+        
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+        }
+        
+        onAuthSuccess(res.data.user); 
+      } else {
+        alert("Success, but no user data received.");
       }
-      
-      // This triggers the redirect to the dashboard in App.js
-      onAuthSuccess(res.data.user); 
-    } else {
-      alert("Success, but no user data received. Check backend console.");
+    } catch (err) {
+      alert(err.response?.data?.message || "Authentication failed");
     }
-  } catch (err) {
-    // If the email exists, the backend will send a 400 error with a message
-    alert(err.response?.data?.message || "Authentication failed");
-  }
-};
+  };
   
    return (
     <div className="auth-screen">
@@ -92,13 +86,17 @@ const handleSubmit = async (e) => {
           </button>
         </form>
 
-        <p className="auth-toggle" onClick={() => setIsLogin(!isLogin)} style={{ 
-            color: '#4f46e5', // ✅ FIX: Make it visible (Blue)
+        <p 
+          className="auth-toggle" 
+          onClick={() => setIsLogin(!isLogin)} 
+          style={{ 
+            color: '#4f46e5', // ✅ Visible Blue Color
             cursor: 'pointer', 
             marginTop: '20px', 
             textAlign: 'center',
             fontWeight: '600'
-          }}>
+          }}
+        >
           {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
         </p>
       </div>
@@ -107,4 +105,3 @@ const handleSubmit = async (e) => {
 };
 
 export default Auth;
-
