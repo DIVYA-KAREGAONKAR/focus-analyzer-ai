@@ -271,7 +271,7 @@ function App() {
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
           {normalizedHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
 
-          {/* Use normalizedHistory here */}
+          {/* Use normalizedHistory here (Ordered Newest -> Oldest for List) */}
           {normalizedHistory.map((item, index) => (
              <HistoryCard key={index} item={item} />
           ))}
@@ -306,9 +306,9 @@ function App() {
             {!isProcessing && !startTime && !sessionData && (
                <div className="welcome-container">
                  
-                 {/* 1. CHART (Use normalizedHistory) */}
+                 {/* 1. CHART (Updated: Reversed for Time Order) */}
                  <div className="chart-wrapper" style={{ marginBottom: '30px', width: '100%' }}>
-                   <FocusChart history={normalizedHistory} />
+                   <FocusChart history={[...normalizedHistory].reverse()} />
                  </div>
 
                  {/* 2. TEXT (Middle, Focus-Themed) */}
@@ -331,9 +331,9 @@ function App() {
             {sessionData && (
                <div className="dashboard-view">
 
-                 {/* A. Chart (Use normalizedHistory) */}
+                 {/* A. Chart (Updated: Reversed for Time Order) */}
                  <div className="chart-wrapper">
-                   <FocusChart history={normalizedHistory} />
+                   <FocusChart history={[...normalizedHistory].reverse()} />
                  </div>
 
                  {/* B. Result (Below Chart) */}
