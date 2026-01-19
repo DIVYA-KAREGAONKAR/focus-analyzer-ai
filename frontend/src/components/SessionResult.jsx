@@ -4,7 +4,9 @@ function SessionResult({ sessionData }) {
   if (!sessionData) return null;
 
   const isFocused = sessionData.status === "Focused";
-  const confidencePercent = Math.round(sessionData.active_ratio * 100);
+  const confidencePercent = sessionData.active_ratio <= 1 
+      ? Math.round(sessionData.active_ratio * 100) 
+      : Math.round(sessionData.active_ratio);
   
   // 1. SAFETY: Default to empty string if advice is missing
   const adviceText = sessionData.advice || "Session analysis complete.";
