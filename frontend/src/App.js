@@ -118,7 +118,8 @@ const [isProcessing, setIsProcessing] = useState(false);
         console.log(`🧠 Raw Output: ${prediction} (0=Distracted, 1=Focused)`);
 
         const confidence = Math.round(predRes.data.confidence * 100);
-        const status = (prediction === 1) ? "Focused" : "Distracted";
+        // ✅ New (Correct for your model)
+const status = (prediction === 1) ? "Distracted" : "Focused";
 
         // ✅ THIS IS THE MISSING PART YOU NEEDED!
         // 1. Get Advice
