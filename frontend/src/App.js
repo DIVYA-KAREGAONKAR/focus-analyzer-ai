@@ -370,7 +370,7 @@ function App() {
 
               {isProcessing && (
                 <button className="ctrl-btn" disabled style={{opacity: 0.7, cursor: 'not-allowed'}}>
-                  Processing...
+                  Processing....
                 </button>
               )}
 
