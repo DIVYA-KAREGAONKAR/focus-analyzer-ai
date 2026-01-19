@@ -15,6 +15,12 @@ const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // FIX 1: Smart Score Calculation (Handles both 0.85 and 85)
+  const getScore = (ratio) => {
+    if (!ratio) return 0;
+    return ratio <= 1 ? Math.round(ratio * 100) : Math.round(ratio);
+  };
+
   return (
     <div 
       className={`history-card ${item.status?.toLowerCase()}`} 
@@ -30,7 +36,7 @@ const HistoryCard = ({ item }) => {
           </span>
         </div>
         <span style={{fontWeight: 'bold', fontSize: '0.9rem', color: '#374151'}}>
-          {Math.round((item.active_ratio || 0) * 100)}%
+          {getScore(item.active_ratio)}%
         </span>
       </div>
 
@@ -114,11 +120,10 @@ function App() {
     localStorage.removeItem("focusUser");
   };
 
-  const handleEvent = async (type) => {
+ const handleEvent = async (type) => {
     // 1. START
     if (type === "START") {
       console.log("🟢 Session STARTED");
-      // Double check permission on start
       if (Notification.permission !== "granted") {
          Notification.requestPermission();
       }
@@ -132,7 +137,6 @@ function App() {
 
     // 2. SWITCH
     if (type === "SWITCH") {
-      console.log("twisted_rightwards_arrows Task SWITCHED");
       setSwitchCount((prev) => prev + 1);
     }
 
@@ -150,14 +154,13 @@ function App() {
       // Calculate Metrics
       const durationSeconds = safeDurationMs / 1000;
       const durationMin = safeDurationMs / 60000;
-      const activeRatio = activeTime / durationSeconds; // Keep as Decimal (0.0 - 1.0)
+      const activeRatio = activeTime / durationSeconds; 
       const safeSwitchRate = switchCount / (durationMin || 1);
 
-      // Only multiply by 100 for the AI Payload
       const payloadForAI = {
         duration: durationSeconds,
         switch_count: switchCount,
-        active_ratio: (activeRatio || 0) * 100, // Send 50.0 to AI
+        active_ratio: (activeRatio || 0), // Kept as decimal here for consistency
         switch_rate: safeSwitchRate
       };
 
@@ -165,11 +168,8 @@ function App() {
         console.log("📤 Sending Data to ML:", payloadForAI);
 
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, payloadForAI);
-
         const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
-
-        // Swap Logic (0=Focused for your specific model)
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
         // Get Advice
@@ -177,29 +177,35 @@ function App() {
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        // ✅ NEW: Trigger Real-Time Notification
-        if (status === "Distracted" && Notification.permission === "granted") {
-           new Notification("⚠️ Focus Alert!", {
-             body: `Distraction Detected! ${newAdvice.substring(0, 40)}...`,
-             icon: "/logo192.png" // Uses your app logo if available
-           });
-        } else if (status === "Focused" && Notification.permission === "granted") {
-            new Notification("🎯 Great Focus!", {
-             body: `You maintained ${Math.round(payloadForAI.active_ratio)}% focus intensity!`,
-             icon: "/logo192.png"
-           });
+        // Notification Logic
+        if (Notification.permission === "granted") {
+           if (status === "Distracted") {
+             new Notification("⚠️ Focus Alert!", { body: "Distraction Detected!" });
+           } else {
+             new Notification("🎯 Great Focus!", { body: "You maintained high focus!" });
+           }
         }
 
-        // Save DECIMAL to state (so UI shows 50%, not 5000%)
         const finalResult = {
           ...payloadForAI,
-          active_ratio: activeRatio, // Save 0.5 here
+          active_ratio: activeRatio,
           prediction: prediction,
           confidence: confidence,
           status: status,
           advice: newAdvice,
           timestamp: new Date().toISOString()
         };
+
+        // ✅ Save to Database
+        try {
+            await axios.post(`${API_BASE_URL}/api/history`, { 
+                userId: user.id, 
+                session: finalResult 
+            });
+            console.log("Saved to DB successfully");
+        } catch (dbErr) {
+            console.error("Failed to save to DB:", dbErr);
+        }
 
         setSessionData(finalResult);
         setSessionHistory(prev => [finalResult, ...prev]);
@@ -216,8 +222,11 @@ function App() {
   const downloadPDF = () => {
     if (!sessionData) return;
     const doc = new jsPDF();
-    // Fix: Multiply by 100 here since active_ratio is decimal
-    const focusScore = Math.round(sessionData.active_ratio * 100);
+    
+    // FIX 2: Correct PDF Score Calculation
+    const rawScore = sessionData.active_ratio || 0;
+    const focusScore = rawScore <= 1 ? Math.round(rawScore * 100) : Math.round(rawScore);
+
     doc.setFontSize(22);
     doc.setTextColor(96, 165, 250);
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
@@ -233,6 +242,16 @@ function App() {
   if (!user) {
     return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
   }
+
+  // FIX 3: Global Data Normalization
+  // This creates a clean copy of history where all decimals (0.85) become (85)
+  // We pass THIS to the Chart and History List to ensure consistency.
+  const normalizedHistory = sessionHistory.map(session => ({
+    ...session,
+    active_ratio: session.active_ratio <= 1 
+      ? session.active_ratio * 100 
+      : session.active_ratio
+  }));
 
   return (
     <div className="chat-layout">
@@ -250,9 +269,10 @@ function App() {
         {/* 2. LEFT SIDEBAR */}
         <div className="history-list">
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
-          {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
+          {normalizedHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
 
-          {sessionHistory.map((item, index) => (
+          {/* Use normalizedHistory here */}
+          {normalizedHistory.map((item, index) => (
              <HistoryCard key={index} item={item} />
           ))}
         </div>
@@ -282,15 +302,13 @@ function App() {
                </div>
             )}
 
-            {/* STATE 3: WELCOME SCREEN (Gemini Style) */}
-            {/* Logic: Show this ONLY if no active session AND no result yet */}
-            {/* STATE 3: WELCOME SCREEN (Chart -> Text -> Button) */}
+            {/* STATE 3: WELCOME SCREEN */}
             {!isProcessing && !startTime && !sessionData && (
                <div className="welcome-container">
                  
-                 {/* 1. CHART (Now at the Top & Full Size) */}
+                 {/* 1. CHART (Use normalizedHistory) */}
                  <div className="chart-wrapper" style={{ marginBottom: '30px', width: '100%' }}>
-                   <FocusChart history={sessionHistory} />
+                   <FocusChart history={normalizedHistory} />
                  </div>
 
                  {/* 2. TEXT (Middle, Focus-Themed) */}
@@ -300,12 +318,11 @@ function App() {
                    </h1>
                    <h2 className="welcome-subtitle">
                      Ready to optimize your cognitive flow?
-                  
                    </h2>
                    <p style={{ color: '#6b7280', marginTop: '10px' }}>
                      Start a session to measure your attention span and intensity.
                    </p>
-                 </div>style={{ color: 'white', cursor: 'pointer', marginTop: '20px', textAlign: 'center' }}
+                 </div>
 
                </div>
             )}
@@ -314,9 +331,9 @@ function App() {
             {sessionData && (
                <div className="dashboard-view">
 
-                 {/* A. Chart (Always Top) */}
+                 {/* A. Chart (Use normalizedHistory) */}
                  <div className="chart-wrapper">
-                   <FocusChart history={sessionHistory} />
+                   <FocusChart history={normalizedHistory} />
                  </div>
 
                  {/* B. Result (Below Chart) */}
