@@ -11,14 +11,22 @@ import { getAdvice } from "./api/advice";
 // Replace with your actual backend URL
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 
-// ✅ HistoryCard: Handles both Decimals (0.85) and Integers (85) correctly
+/// ✅ HistoryCard: Fixes "0%" display issue
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const getScore = (ratio) => {
-    if (!ratio) return 0;
-    // If decimal, multiply by 100. If integer, keep it.
-    return ratio <= 1 ? Math.round(ratio * 100) : Math.round(ratio);
+  const getScore = (ratio, status) => {
+    // 1. Safety check for missing values
+    if (ratio === null || ratio === undefined) return 0;
+
+    // 2. Normalize: If decimal (0.85), make it 85. If integer (85), keep it.
+    let score = ratio <= 1 ? Math.round(ratio * 100) : Math.round(ratio);
+
+    // 3. VISUAL FIX: If status is 'Focused' but math says 0%, bump it to 1%
+    // This prevents the confusing "Focused ... 0%" display
+    if (score === 0 && status === 'Focused') return 1;
+
+    return score;
   };
 
   return (
@@ -35,7 +43,8 @@ const HistoryCard = ({ item }) => {
           </span>
         </div>
         <span style={{fontWeight: 'bold', fontSize: '0.9rem', color: '#374151'}}>
-          {getScore(item.active_ratio)}%
+          {/* Pass both ratio and status to our new helper */}
+          {getScore(item.active_ratio, item.status)}%
         </span>
       </div>
 
