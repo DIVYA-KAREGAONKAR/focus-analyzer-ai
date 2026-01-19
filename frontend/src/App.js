@@ -210,19 +210,25 @@ function App() {
 
   // ✅ CRITICAL FIX: Prepare Data specifically for the Chart
   // Your FocusChart.js multiplies by 100, so we MUST send it Decimals (0.xx).
-  // If we send Integers (85), the chart makes them 8500 (Blue Wall).
-  const chartHistory = sessionHistory.map(session => ({
-    ...session,
-    // If value is > 1 (e.g., 85), divide by 100 to make it 0.85
-    // If value is <= 1 (e.g., 0.85), keep it as 0.85
-    active_ratio: session.active_ratio > 1 
-      ? session.active_ratio / 100 
-      : session.active_ratio
-  }));
+ // ✅ CRITICAL FIX: Filter out "0%" sessions & Prepare Data
+  const chartHistory = sessionHistory
+    .filter(session => {
+        // Only include sessions that have a real score (greater than 1%)
+        // This hides the broken "0%" dots (like 8:03 and 8:20) from the graph
+        const val = session.active_ratio || 0;
+        const score = val <= 1 ? val * 100 : val;
+        return score > 1; 
+    })
+    .map(session => ({
+      ...session,
+      // Ensure data is always Decimal (0.xx) for the Chart component
+      active_ratio: session.active_ratio > 1 
+        ? session.active_ratio / 100 
+        : session.active_ratio
+    }));
 
   // Reverse for Chart (Oldest -> Newest)
   const chartDataReversed = [...chartHistory].reverse();
-
   return (
     <div className="chat-layout">
       <nav className="navbar">
