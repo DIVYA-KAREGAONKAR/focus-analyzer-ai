@@ -64,10 +64,10 @@ const [isProcessing, setIsProcessing] = useState(false);
     localStorage.setItem("focusUser", JSON.stringify(userData));
   };
 
-  const handleEvent = async (type) => {
-    // 1. START EVENT (Restored Console Log)
+ const handleEvent = async (type) => {
+    // 1. START EVENT
     if (type === "START") {
-      console.log("🟢 Session STARTED"); // You will see this in Console now
+      console.log("🟢 Session STARTED");
       if ("Notification" in window && Notification.permission !== "granted") {
         Notification.requestPermission();
       }
@@ -79,34 +79,30 @@ const [isProcessing, setIsProcessing] = useState(false);
       setIsProcessing(false);
     }
 
-    // 2. SWITCH EVENT (Restored Console Log)
+    // 2. SWITCH EVENT
     if (type === "SWITCH") {
-      console.log("twisted_rightwards_arrows Task SWITCHED"); // You will see this in Console now
+      console.log("twisted_rightwards_arrows Task SWITCHED");
       setSwitchCount((prev) => prev + 1);
     }
 
-    // 3. STOP EVENT (Fixes the 500 Crash)
+    // 3. STOP EVENT (The Important Part)
    if (type === "STOP") {
       const end = Date.now();
       console.log("🔴 Session STOPPED. Analyzing...");
       
       setStartTime(null);
-      setIsProcessing(true); 
+      setIsProcessing(true); // Show Loading Spinner
       
       const rawDurationMs = end - startTime;
       const safeDurationMs = Math.max(rawDurationMs, 2000); 
 
-      // 1. CALCULATE IN SECONDS (This fixes the "Opposite Result" bug)
+      // Calculate Metrics
       const durationSeconds = safeDurationMs / 1000; 
       const durationMin = safeDurationMs / 60000;
-      
       const activeRatio = activeTime / durationSeconds;
-      
-      // Keep rate as "Switches per Minute" (Standard)
       const safeSwitchRate = switchCount / (durationMin || 1);
 
       const sessionDataPayload = {
-        // CHANGE THIS: Send Seconds instead of Minutes
         duration: durationSeconds, 
         switch_count: switchCount,
         active_ratio: activeRatio || 0, 
@@ -114,23 +110,43 @@ const [isProcessing, setIsProcessing] = useState(false);
       };
 
       try {
-        console.log("📤 Sending Fixed Data to ML:", sessionDataPayload);
+        console.log("📤 Sending Data to ML:", sessionDataPayload);
 
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionDataPayload);
         
-        // DEBUG: Check what the raw prediction actually is (0 or 1)
         const prediction = predRes.data.prediction;
-        console.log(`🧠 Raw Model Output: ${prediction} (0=Distracted, 1=Focused)`);
+        console.log(`🧠 Raw Output: ${prediction} (0=Distracted, 1=Focused)`);
 
         const confidence = Math.round(predRes.data.confidence * 100);
         const status = (prediction === 1) ? "Focused" : "Distracted";
 
-        // ... rest of your code ...
-         }catch (err) {
+        // ✅ THIS IS THE MISSING PART YOU NEEDED!
+        // 1. Get Advice
+        const adviceRes = await getAdvice(status, activeRatio, switchCount);
+        const newAdvice = adviceRes || "Stay consistent!";
+        setAdvice(newAdvice);
+
+        // 2. Build the Final Result Object
+        const finalResult = {
+          ...sessionDataPayload,
+          prediction: prediction, 
+          confidence: confidence,
+          status: status,
+          advice: newAdvice,
+          timestamp: new Date().toISOString()
+        };
+
+        // 3. Save to State (THIS makes the Result Card appear!)
+        setSessionData(finalResult);
+
+        // 4. Update Sidebar History
+        setSessionHistory(prev => [finalResult, ...prev]);
+
+      } catch (err) {
         console.error("❌ Process Failed:", err);
         setAdvice("Could not analyze session. Please check connection.");
       } finally {
-        setIsProcessing(false); // Hide Loading Screen
+        setIsProcessing(false); // Hide Loading Spinner
       }
     }
   };
