@@ -11,7 +11,7 @@ import { getAdvice } from "./api/advice";
 // Replace with your actual backend URL
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
 
-// ✅ NEW: Smart Sidebar Component (Handles "Click to Expand")
+// ✅ New Component: Cleaner Layout
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -19,34 +19,38 @@ const HistoryCard = ({ item }) => {
     <div 
       className={`history-card ${item.status?.toLowerCase()}`} 
       onClick={() => setIsOpen(!isOpen)}
-      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+      style={{ cursor: 'pointer', transition: 'all 0.2s ease', position: 'relative' }}
     >
       {/* 1. Header: Status & Score */}
-      <div className="card-header">
-        <div style={{display:'flex', alignItems:'center'}}>
+      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+        <div style={{display:'flex', alignItems:'center', gap: '8px'}}>
           <span className="status-dot"></span>
-          <span className="card-status">{item.status || "Completed"}</span>
+          <span className="card-status" style={{fontWeight: '600'}}>{item.status || "Completed"}</span>
         </div>
-        <span className="card-score">{Math.round(item.active_ratio)}%</span>
-      </div>
-
-      {/* 2. Date & Time */}
-      <div className="card-meta">
-        {new Date(item.timestamp).toLocaleDateString('en-US', { 
-          weekday: 'short', month: 'short', day: 'numeric', 
-          hour: '2-digit', minute: '2-digit' 
-        })}
-        {/* Arrow Hint */}
-        <span style={{float: 'right', fontSize: '10px', opacity: 0.6}}>
-          {isOpen ? "▲" : "▼"}
+        <span className="card-score" style={{fontWeight: 'bold', fontSize: '1.1rem'}}>
+          {Math.round((item.active_ratio || 0) * 100)}%
         </span>
       </div>
 
-      {/* 3. Hidden Advice (Shows only when clicked) */}
+      {/* 2. Date & Time (Cleanly separated) */}
+      <div className="card-meta" style={{ display: 'flex', justifyContent: 'space-between', color: '#666', fontSize: '0.85rem' }}>
+        <span>
+          {new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          <span style={{ margin: '0 6px' }}>•</span>
+          {new Date(item.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+        </span>
+        
+        {/* Arrow Hint */}
+        <span style={{ fontSize: '10px', opacity: 0.6, transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>
+          ▼
+        </span>
+      </div>
+
+      {/* 3. Hidden Advice */}
       {isOpen && item.advice && (
-        <div className="card-advice-dropdown" style={{marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '8px'}}>
-          <p style={{fontSize: '0.85rem', color: '#555', lineHeight: '1.4'}}>
-            {item.advice.replace(/\*\*/g, '')}
+        <div className="card-advice-dropdown" style={{marginTop: '12px', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '10px'}}>
+          <p style={{fontSize: '0.9rem', color: '#444', lineHeight: '1.5', fontStyle: 'italic'}}>
+            "{item.advice.replace(/\*\*/g, '')}"
           </p>
         </div>
       )}
@@ -103,7 +107,7 @@ function App() {
     localStorage.removeItem("focusUser");
   };
 
-  const handleEvent = async (type) => {
+ const handleEvent = async (type) => {
     // 1. START
     if (type === "START") {
       console.log("🟢 Session STARTED");
@@ -138,41 +142,37 @@ function App() {
       // Calculate Metrics
       const durationSeconds = safeDurationMs / 1000; 
       const durationMin = safeDurationMs / 60000;
-      const activeRatio = activeTime / durationSeconds;
+      const activeRatio = activeTime / durationSeconds; // Keep as Decimal (0.0 - 1.0)
       const safeSwitchRate = switchCount / (durationMin || 1);
 
-      // ✅ FIX: Calculate percentage BEFORE sending
-      // This sends "90.0" instead of "0.9"
-      const activePercentage = (activeRatio || 0) * 100;
-
-      const sessionDataPayload = {
+      // ✅ FIX 1: Only multiply by 100 for the AI Payload
+      const payloadForAI = {
         duration: durationSeconds, 
         switch_count: switchCount,
-        active_ratio: activePercentage, // Send the % value (0-100)
+        active_ratio: (activeRatio || 0) * 100, // Send 50.0 to AI
         switch_rate: safeSwitchRate
       };
 
       try {
-        console.log("📤 Sending Data to ML:", sessionDataPayload);
+        console.log("📤 Sending Data to ML:", payloadForAI);
 
-        const predRes = await axios.post(`${API_BASE_URL}/api/predict`, sessionDataPayload);
+        const predRes = await axios.post(`${API_BASE_URL}/api/predict`, payloadForAI);
         
         const prediction = predRes.data.prediction;
-        console.log(`🧠 Raw Output: ${prediction} (0=Distracted, 1=Focused)`);
-
         const confidence = Math.round(predRes.data.confidence * 100);
         
-        // ✅ Your Manual Swap (0=Focused logic)
+        // Swap Logic (0=Focused)
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
-        // 1. Get Advice
-        const adviceRes = await getAdvice(status, activePercentage, switchCount);
+        // Get Advice
+        const adviceRes = await getAdvice(status, payloadForAI.active_ratio, switchCount);
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        // 2. Build Result
+        // ✅ FIX 2: Save DECIMAL to state (so UI shows 50%, not 5000%)
         const finalResult = {
-          ...sessionDataPayload,
+          ...payloadForAI,
+          active_ratio: activeRatio, // Save 0.5 here
           prediction: prediction, 
           confidence: confidence,
           status: status,
@@ -180,10 +180,7 @@ function App() {
           timestamp: new Date().toISOString()
         };
 
-        // 3. Save to State
         setSessionData(finalResult);
-
-        // 4. Update History
         setSessionHistory(prev => [finalResult, ...prev]);
 
       } catch (err) {
