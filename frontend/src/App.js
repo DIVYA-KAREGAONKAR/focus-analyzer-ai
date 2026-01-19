@@ -285,6 +285,7 @@ function App() {
             {/* STATE 3: WELCOME SCREEN (Gemini Style) */}
             {/* Logic: Show this ONLY if no active session AND no result yet */}
             {/* STATE 3: WELCOME SCREEN (Chart -> Text -> Button) */}
+           {/* STATE 3: WELCOME SCREEN (Chart -> Text -> Button) */}
             {!isProcessing && !startTime && !sessionData && (
                <div className="welcome-container">
                  
@@ -300,12 +301,21 @@ function App() {
                    </h1>
                    <h2 className="welcome-subtitle">
                      Ready to optimize your cognitive flow?
-                  
+                     {/* Cursor span is removed from here ✅ */}
                    </h2>
                    <p style={{ color: '#6b7280', marginTop: '10px' }}>
                      Start a session to measure your attention span and intensity.
                    </p>
-                 </div>style={{ color: 'white', cursor: 'pointer', marginTop: '20px', textAlign: 'center' }}
+                 </div>
+
+                 {/* 3. START BUTTON (This was likely where the style belonged) */}
+                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                    <Controls 
+                      isProcessing={isProcessing} 
+                      onStart={handleStart} 
+                      onStop={handleStop} 
+                    />
+                 </div>
 
                </div>
             )}
