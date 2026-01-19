@@ -101,7 +101,7 @@ const Auth = ({ onAuthSuccess }) => {
           onClick={() => setIsLogin(!isLogin)} 
           style={linkStyle}
         >
-          {isLogin ? "New here? Create account" : "Already have an account? Sign In"}
+          {isLogin ? "New here? Create account." : "Already have an account? Sign In"}
         </p>
       </div>
     </div>
