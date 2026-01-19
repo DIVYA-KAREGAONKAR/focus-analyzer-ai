@@ -13,7 +13,67 @@
 }
 
 
+/* --- NEW BUTTON STYLES --- */
 
+/* 1. Sign Out Button (Top Right) */
+.logout-btn {
+  background-color: #fee2e2;
+  color: #ef4444;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logout-btn:hover {
+  background-color: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* 2. Download PDF Button */
+.download-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px -1px rgba(59, 130, 246, 0.4);
+}
+
+.download-btn:active {
+  transform: translateY(0);
+}
+
+/* 3. History Card Interactions */
+.history-card:hover {
+  transform: translateX(4px); /* Slight nudge effect */
+  border-color: #bfdbfe; /* Light blue border on hover */
+}
+
+/* Animation for the dropdown advice */
+.card-advice-dropdown {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .processing-state {
   display: flex;
   flex-direction: column;

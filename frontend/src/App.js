@@ -6,9 +6,53 @@ import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
 import "./index.css"
-import { getAdvice } from "./api/advice"; // <--- Add this import
-// Replace with your actual backend URL (e.g., your Render.com URL)
+import { getAdvice } from "./api/advice";
+
+// Replace with your actual backend URL
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com"; 
+
+// ✅ NEW: Smart Sidebar Component (Handles "Click to Expand")
+const HistoryCard = ({ item }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div 
+      className={`history-card ${item.status?.toLowerCase()}`} 
+      onClick={() => setIsOpen(!isOpen)}
+      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+    >
+      {/* 1. Header: Status & Score */}
+      <div className="card-header">
+        <div style={{display:'flex', alignItems:'center'}}>
+          <span className="status-dot"></span>
+          <span className="card-status">{item.status || "Completed"}</span>
+        </div>
+        <span className="card-score">{Math.round(item.active_ratio)}%</span>
+      </div>
+
+      {/* 2. Date & Time */}
+      <div className="card-meta">
+        {new Date(item.timestamp).toLocaleDateString('en-US', { 
+          weekday: 'short', month: 'short', day: 'numeric', 
+          hour: '2-digit', minute: '2-digit' 
+        })}
+        {/* Arrow Hint */}
+        <span style={{float: 'right', fontSize: '10px', opacity: 0.6}}>
+          {isOpen ? "▲" : "▼"}
+        </span>
+      </div>
+
+      {/* 3. Hidden Advice (Shows only when clicked) */}
+      {isOpen && item.advice && (
+        <div className="card-advice-dropdown" style={{marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '8px'}}>
+          <p style={{fontSize: '0.85rem', color: '#555', lineHeight: '1.4'}}>
+            {item.advice.replace(/\*\*/g, '')}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 function App() {
   const [user, setUser] = useState(null); 
@@ -18,9 +62,9 @@ function App() {
   const [sessionData, setSessionData] = useState(null);
   const [sessionHistory, setSessionHistory] = useState([]);
   const [advice, setAdvice] = useState("");
-// Add this with your other useState lines
-const [isProcessing, setIsProcessing] = useState(false);
-  // 1. Persistence Check: Stay logged in on refresh
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // 1. Persistence Check
   useEffect(() => {
     const savedUser = localStorage.getItem("focusUser");
     if (savedUser) {
@@ -28,7 +72,7 @@ const [isProcessing, setIsProcessing] = useState(false);
     }
   }, []);
 
-  // 2. Fetch History from Backend on Login
+  // 2. Fetch History
   useEffect(() => {
     if (user) {
       const fetchUserHistory = async () => {
@@ -43,6 +87,7 @@ const [isProcessing, setIsProcessing] = useState(false);
     }
   }, [user]);
 
+  // Timer
   useEffect(() => {
     let interval;
     if (startTime) {
@@ -53,19 +98,13 @@ const [isProcessing, setIsProcessing] = useState(false);
     return () => clearInterval(interval);
   }, [startTime]);
 
-  // 3. Define the missing logout function
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("focusUser");
   };
 
-  const handleLoginSuccess = (userData) => {
-    setUser(userData);
-    localStorage.setItem("focusUser", JSON.stringify(userData));
-  };
-
- const handleEvent = async (type) => {
-    // 1. START EVENT
+  const handleEvent = async (type) => {
+    // 1. START
     if (type === "START") {
       console.log("🟢 Session STARTED");
       if ("Notification" in window && Notification.permission !== "granted") {
@@ -79,19 +118,19 @@ const [isProcessing, setIsProcessing] = useState(false);
       setIsProcessing(false);
     }
 
-    // 2. SWITCH EVENT
+    // 2. SWITCH
     if (type === "SWITCH") {
       console.log("twisted_rightwards_arrows Task SWITCHED");
       setSwitchCount((prev) => prev + 1);
     }
 
-    // 3. STOP EVENT (The Important Part)
-   if (type === "STOP") {
+    // 3. STOP
+    if (type === "STOP") {
       const end = Date.now();
       console.log("🔴 Session STOPPED. Analyzing...");
       
       setStartTime(null);
-      setIsProcessing(true); // Show Loading Spinner
+      setIsProcessing(true); 
       
       const rawDurationMs = end - startTime;
       const safeDurationMs = Math.max(rawDurationMs, 2000); 
@@ -102,10 +141,14 @@ const [isProcessing, setIsProcessing] = useState(false);
       const activeRatio = activeTime / durationSeconds;
       const safeSwitchRate = switchCount / (durationMin || 1);
 
+      // ✅ FIX: Calculate percentage BEFORE sending
+      // This sends "90.0" instead of "0.9"
+      const activePercentage = (activeRatio || 0) * 100;
+
       const sessionDataPayload = {
         duration: durationSeconds, 
         switch_count: switchCount,
-        active_ratio: activeRatio || 0 * 100, 
+        active_ratio: activePercentage, // Send the % value (0-100)
         switch_rate: safeSwitchRate
       };
 
@@ -118,16 +161,16 @@ const [isProcessing, setIsProcessing] = useState(false);
         console.log(`🧠 Raw Output: ${prediction} (0=Distracted, 1=Focused)`);
 
         const confidence = Math.round(predRes.data.confidence * 100);
-        // ✅ New (Correct for your model)
-const status = (prediction === 1) ? "Distracted" : "Focused";
+        
+        // ✅ Your Manual Swap (0=Focused logic)
+        const status = (prediction === 1) ? "Distracted" : "Focused";
 
-        // ✅ THIS IS THE MISSING PART YOU NEEDED!
         // 1. Get Advice
-        const adviceRes = await getAdvice(status, activeRatio, switchCount);
+        const adviceRes = await getAdvice(status, activePercentage, switchCount);
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        // 2. Build the Final Result Object
+        // 2. Build Result
         const finalResult = {
           ...sessionDataPayload,
           prediction: prediction, 
@@ -137,17 +180,17 @@ const status = (prediction === 1) ? "Distracted" : "Focused";
           timestamp: new Date().toISOString()
         };
 
-        // 3. Save to State (THIS makes the Result Card appear!)
+        // 3. Save to State
         setSessionData(finalResult);
 
-        // 4. Update Sidebar History
+        // 4. Update History
         setSessionHistory(prev => [finalResult, ...prev]);
 
       } catch (err) {
         console.error("❌ Process Failed:", err);
         setAdvice("Could not analyze session. Please check connection.");
       } finally {
-        setIsProcessing(false); // Hide Loading Spinner
+        setIsProcessing(false);
       }
     }
   };
@@ -155,7 +198,7 @@ const status = (prediction === 1) ? "Distracted" : "Focused";
   const downloadPDF = () => {
     if (!sessionData) return;
     const doc = new jsPDF();
-    const focusScore = Math.round(sessionData.active_ratio * 100);
+    const focusScore = Math.round(sessionData.active_ratio);
     doc.setFontSize(22);
     doc.setTextColor(96, 165, 250);
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
@@ -168,15 +211,11 @@ const status = (prediction === 1) ? "Distracted" : "Focused";
     doc.save(`FocusReport_${Date.now()}.pdf`);
   };
 
-  // 4. Auth Guard
- if (!user) {
-  return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
-}
+  if (!user) {
+    return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
+  }
 
-  // ... (imports remain the same)
-
-// Inside the App component return:
-return (
+  return (
     <div className="chat-layout">
       {/* 1. TOP NAVBAR */}
       <nav className="navbar">
@@ -189,41 +228,22 @@ return (
 
       <div className="layout-body">
         
-        {/* 2. LEFT SIDEBAR (History) */}
+        {/* 2. LEFT SIDEBAR (Using Smart Card) */}
         <div className="history-list">
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
           {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
           
           {sessionHistory.map((item, index) => (
-            <div key={index} className={`history-card ${item.status?.toLowerCase()}`}>
-              <div className="card-header">
-                <div style={{display:'flex', alignItems:'center'}}>
-                  <span className="status-dot"></span>
-                  <span className="card-status">{item.status || "Completed"}</span>
-                </div>
-                <span className="card-score">{Math.round(item.active_ratio * 100)}%</span>
-              </div>
-              <div className="card-meta">
-                {new Date(item.timestamp).toLocaleDateString('en-US', { 
-                  weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                })}
-              </div>
-              {item.advice && (
-                <p className="card-advice-preview">
-                  {item.advice.replace(/\*\*/g, '').substring(0, 60)}...
-                </p>
-              )}
-            </div>
+             <HistoryCard key={index} item={item} />
           ))}
         </div>
 
         {/* 3. MAIN CENTER AREA */}
         <main className="main-center">
           
-          {/* CONTENT AREA (Scrollable) */}
           <div className="content-scroll-area">
             
-            {/* STATE 1: PROCESSING (Loading Spinner) */}
+            {/* STATE 1: PROCESSING */}
             {isProcessing && (
               <div className="processing-state">
                 <div className="spinner"></div>
@@ -232,7 +252,7 @@ return (
               </div>
             )}
 
-            {/* STATE 2: ACTIVE TIMER (Hide Chart, Show Timer) */}
+            {/* STATE 2: ACTIVE TIMER */}
             {!isProcessing && startTime && (
                <div className="timer-display">
                   <div className="timer-circle">
@@ -247,12 +267,12 @@ return (
             {!isProcessing && !startTime && (
                <div className="dashboard-view">
                  
-                 {/* A. The Chart (Always at the top) */}
+                 {/* A. Chart (Always Top) */}
                  <div className="chart-wrapper">
                    <FocusChart history={sessionHistory} />
                  </div>
 
-                 {/* B. The Result (Appears BELOW chart if data exists) */}
+                 {/* B. Result (Below Chart) */}
                  {sessionData && (
                     <div className="result-wrapper" style={{ marginTop: '30px', animation: 'fadeIn 0.5s ease' }}>
                       <SessionResult sessionData={sessionData} />
@@ -273,12 +293,11 @@ return (
           <div className="bottom-input-area">
             <div className="controls-card">
               
-              {/* SCENARIO A: Session Not Started (Show START) */}
               {!startTime && !isProcessing && (
                 <button 
                   className="ctrl-btn start-btn" 
                   onClick={() => {
-                    setSessionData(null); // Clear previous result so user starts fresh
+                    setSessionData(null); 
                     handleEvent("START");
                   }}
                 >
@@ -286,7 +305,6 @@ return (
                 </button>
               )}
 
-              {/* SCENARIO B: Session Running (Show SWITCH / STOP) */}
               {startTime && !isProcessing && (
                 <div className="btn-group">
                   <button 
@@ -305,7 +323,6 @@ return (
                 </div>
               )}
 
-              {/* SCENARIO C: Processing (Disable Buttons) */}
               {isProcessing && (
                 <button className="ctrl-btn" disabled style={{opacity: 0.7, cursor: 'not-allowed'}}>
                   Processing...
@@ -322,13 +339,6 @@ return (
 }
 
 export default App;
-
-
-
-
-
-
-
 
 
 
