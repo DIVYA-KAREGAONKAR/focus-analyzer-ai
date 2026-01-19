@@ -15,6 +15,12 @@ const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
+  // FIX 1: Smart Score Calculation (Handles both 0.85 and 85)
+  const getScore = (ratio) => {
+    if (!ratio) return 0;
+    return ratio <= 1 ? Math.round(ratio * 100) : Math.round(ratio);
+  };
+
   return (
     <div 
       className={`history-card ${item.status?.toLowerCase()}`} 
@@ -30,7 +36,7 @@ const HistoryCard = ({ item }) => {
           </span>
         </div>
         <span style={{fontWeight: 'bold', fontSize: '0.9rem', color: '#374151'}}>
-          {Math.round((item.active_ratio || 0) * 100)}%
+          {getScore(item.active_ratio)}%
         </span>
       </div>
 
@@ -154,7 +160,7 @@ function App() {
       const payloadForAI = {
         duration: durationSeconds,
         switch_count: switchCount,
-        active_ratio: (activeRatio || 0) * 100, 
+        active_ratio: (activeRatio || 0), // Kept as decimal here for consistency
         switch_rate: safeSwitchRate
       };
 
@@ -190,7 +196,7 @@ function App() {
           timestamp: new Date().toISOString()
         };
 
-        // ✅ THE MISSING FIX: Save to Database so it doesn't vanish!
+        // ✅ Save to Database
         try {
             await axios.post(`${API_BASE_URL}/api/history`, { 
                 userId: user.id, 
@@ -216,8 +222,11 @@ function App() {
   const downloadPDF = () => {
     if (!sessionData) return;
     const doc = new jsPDF();
-    // Fix: Multiply by 100 here since active_ratio is decimal
-    const focusScore = Math.round(sessionData.active_ratio * 100);
+    
+    // FIX 2: Correct PDF Score Calculation
+    const rawScore = sessionData.active_ratio || 0;
+    const focusScore = rawScore <= 1 ? Math.round(rawScore * 100) : Math.round(rawScore);
+
     doc.setFontSize(22);
     doc.setTextColor(96, 165, 250);
     doc.text("Focus Analyzer Pro: Performance Report", 10, 20);
@@ -233,6 +242,16 @@ function App() {
   if (!user) {
     return <Auth onAuthSuccess={(userData) => setUser(userData)} />;
   }
+
+  // FIX 3: Global Data Normalization
+  // This creates a clean copy of history where all decimals (0.85) become (85)
+  // We pass THIS to the Chart and History List to ensure consistency.
+  const normalizedHistory = sessionHistory.map(session => ({
+    ...session,
+    active_ratio: session.active_ratio <= 1 
+      ? session.active_ratio * 100 
+      : session.active_ratio
+  }));
 
   return (
     <div className="chat-layout">
@@ -250,9 +269,10 @@ function App() {
         {/* 2. LEFT SIDEBAR */}
         <div className="history-list">
           <h4 style={{marginBottom: '1rem', color: '#6b7280', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '1px'}}>Session History</h4>
-          {sessionHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
+          {normalizedHistory.length === 0 && <p style={{color: '#aaa', fontSize: '0.9rem'}}>No history yet.</p>}
 
-          {sessionHistory.map((item, index) => (
+          {/* Use normalizedHistory here */}
+          {normalizedHistory.map((item, index) => (
              <HistoryCard key={index} item={item} />
           ))}
         </div>
@@ -282,14 +302,13 @@ function App() {
                </div>
             )}
 
-            {/* STATE 3: WELCOME SCREEN (Gemini Style) */}
-          {/* STATE 3: WELCOME SCREEN (Chart -> Text -> Button) */}
+            {/* STATE 3: WELCOME SCREEN */}
             {!isProcessing && !startTime && !sessionData && (
                <div className="welcome-container">
                  
-                 {/* 1. CHART (Now at the Top & Full Size) */}
+                 {/* 1. CHART (Use normalizedHistory) */}
                  <div className="chart-wrapper" style={{ marginBottom: '30px', width: '100%' }}>
-                   <FocusChart history={sessionHistory} />
+                   <FocusChart history={normalizedHistory} />
                  </div>
 
                  {/* 2. TEXT (Middle, Focus-Themed) */}
@@ -305,7 +324,6 @@ function App() {
                    </p>
                  </div>
 
-                
                </div>
             )}
 
@@ -313,9 +331,9 @@ function App() {
             {sessionData && (
                <div className="dashboard-view">
 
-                 {/* A. Chart (Always Top) */}
+                 {/* A. Chart (Use normalizedHistory) */}
                  <div className="chart-wrapper">
-                   <FocusChart history={sessionHistory} />
+                   <FocusChart history={normalizedHistory} />
                  </div>
 
                  {/* B. Result (Below Chart) */}
@@ -383,4 +401,3 @@ function App() {
 }
 
 export default App;
-
