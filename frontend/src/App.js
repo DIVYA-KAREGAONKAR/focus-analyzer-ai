@@ -12,19 +12,22 @@ import { getAdvice } from "./api/advice";
 const API_BASE_URL = "https://focus-analyzer-ai-4.onrender.com";
 
 /// ✅ HistoryCard: Fixes "0%" display issue
+// ✅ HistoryCard: FINAL FIX for "0%" Display
 const HistoryCard = ({ item }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const getScore = (ratio, status) => {
-    // 1. Safety check for missing values
-    if (ratio === null || ratio === undefined) return 0;
+  // Helper logic to calculate score
+  const getScore = (ratio) => {
+    let val = ratio || 0;
+    
+    // 1. Math: Convert decimal (0.003) to percentage (0)
+    let score = val <= 1 ? Math.round(val * 100) : Math.round(val);
 
-    // 2. Normalize: If decimal (0.85), make it 85. If integer (85), keep it.
-    let score = ratio <= 1 ? Math.round(ratio * 100) : Math.round(ratio);
-
-    // 3. VISUAL FIX: If status is 'Focused' but math says 0%, bump it to 1%
-    // This prevents the confusing "Focused ... 0%" display
-    if (score === 0 && status === 'Focused') return 1;
+    // 2. SAFETY OVERRIDE: Access 'item.status' directly from props
+    // If the math says 0% but the status is "Focused", force it to 1%
+    if (score === 0 && item.status === 'Focused') {
+        return 1; 
+    }
 
     return score;
   };
@@ -43,8 +46,8 @@ const HistoryCard = ({ item }) => {
           </span>
         </div>
         <span style={{fontWeight: 'bold', fontSize: '0.9rem', color: '#374151'}}>
-          {/* Pass both ratio and status to our new helper */}
-          {getScore(item.active_ratio, item.status)}%
+          {/* You don't need to change arguments here anymore */}
+          {getScore(item.active_ratio)}%
         </span>
       </div>
 
