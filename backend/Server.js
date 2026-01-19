@@ -136,10 +136,24 @@ app.get('/api/history/:userId', async (req, res) => {
   res.json(sessions);
 });
 
+// ✅ CORRECTED HISTORY ROUTE
 app.post('/api/history', async (req, res) => {
-  const newSession = new Session(req.body);
-  await newSession.save();
-  res.status(201).json(newSession);
+  try {
+    const { userId, session } = req.body; // Unpack the data
+
+    // Flatten the data so Mongoose understands it
+    const sessionData = {
+      userId: userId,
+      ...session // This spreads duration, active_ratio, etc. into the top level
+    };
+
+    const newSession = new Session(sessionData);
+    await newSession.save();
+    res.status(201).json(newSession);
+  } catch (err) {
+    console.error("Error saving session:", err);
+    res.status(500).json({ message: "Failed to save session" });
+  }
 });
 
 
