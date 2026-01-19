@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import jsPDF from 'jspdf';
-
+import Controls from "./components/Controls";
 import SessionResult from "./components/SessionResult";
 import FocusChart from "./components/FocusChart";
 import Auth from "./components/Auth";
@@ -114,11 +114,10 @@ function App() {
     localStorage.removeItem("focusUser");
   };
 
-  const handleEvent = async (type) => {
+ const handleEvent = async (type) => {
     // 1. START
     if (type === "START") {
       console.log("🟢 Session STARTED");
-      // Double check permission on start
       if (Notification.permission !== "granted") {
          Notification.requestPermission();
       }
@@ -132,7 +131,6 @@ function App() {
 
     // 2. SWITCH
     if (type === "SWITCH") {
-      console.log("twisted_rightwards_arrows Task SWITCHED");
       setSwitchCount((prev) => prev + 1);
     }
 
@@ -150,14 +148,13 @@ function App() {
       // Calculate Metrics
       const durationSeconds = safeDurationMs / 1000;
       const durationMin = safeDurationMs / 60000;
-      const activeRatio = activeTime / durationSeconds; // Keep as Decimal (0.0 - 1.0)
+      const activeRatio = activeTime / durationSeconds; 
       const safeSwitchRate = switchCount / (durationMin || 1);
 
-      // Only multiply by 100 for the AI Payload
       const payloadForAI = {
         duration: durationSeconds,
         switch_count: switchCount,
-        active_ratio: (activeRatio || 0) * 100, // Send 50.0 to AI
+        active_ratio: (activeRatio || 0) * 100, 
         switch_rate: safeSwitchRate
       };
 
@@ -165,11 +162,8 @@ function App() {
         console.log("📤 Sending Data to ML:", payloadForAI);
 
         const predRes = await axios.post(`${API_BASE_URL}/api/predict`, payloadForAI);
-
         const prediction = predRes.data.prediction;
         const confidence = Math.round(predRes.data.confidence * 100);
-
-        // Swap Logic (0=Focused for your specific model)
         const status = (prediction === 1) ? "Distracted" : "Focused";
 
         // Get Advice
@@ -177,29 +171,35 @@ function App() {
         const newAdvice = adviceRes || "Stay consistent!";
         setAdvice(newAdvice);
 
-        // ✅ NEW: Trigger Real-Time Notification
-        if (status === "Distracted" && Notification.permission === "granted") {
-           new Notification("⚠️ Focus Alert!", {
-             body: `Distraction Detected! ${newAdvice.substring(0, 40)}...`,
-             icon: "/logo192.png" // Uses your app logo if available
-           });
-        } else if (status === "Focused" && Notification.permission === "granted") {
-            new Notification("🎯 Great Focus!", {
-             body: `You maintained ${Math.round(payloadForAI.active_ratio)}% focus intensity!`,
-             icon: "/logo192.png"
-           });
+        // Notification Logic
+        if (Notification.permission === "granted") {
+           if (status === "Distracted") {
+             new Notification("⚠️ Focus Alert!", { body: "Distraction Detected!" });
+           } else {
+             new Notification("🎯 Great Focus!", { body: "You maintained high focus!" });
+           }
         }
 
-        // Save DECIMAL to state (so UI shows 50%, not 5000%)
         const finalResult = {
           ...payloadForAI,
-          active_ratio: activeRatio, // Save 0.5 here
+          active_ratio: activeRatio,
           prediction: prediction,
           confidence: confidence,
           status: status,
           advice: newAdvice,
           timestamp: new Date().toISOString()
         };
+
+        // ✅ THE MISSING FIX: Save to Database so it doesn't vanish!
+        try {
+            await axios.post(`${API_BASE_URL}/api/history`, { 
+                userId: user.id, 
+                session: finalResult 
+            });
+            console.log("Saved to DB successfully");
+        } catch (dbErr) {
+            console.error("Failed to save to DB:", dbErr);
+        }
 
         setSessionData(finalResult);
         setSessionHistory(prev => [finalResult, ...prev]);
@@ -305,15 +305,7 @@ function App() {
                    </p>
                  </div>
 
-                 {/* 3. START BUTTON (FIXED: Uses handleEvent now) */}
-                 <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
-                    <Controls 
-                      isProcessing={isProcessing} 
-                      onStart={() => handleEvent("START")} 
-                      onStop={() => handleEvent("STOP")} 
-                    />
-                 </div>
-
+                
                </div>
             )}
 
